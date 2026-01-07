@@ -18,4 +18,6 @@ React + TypeScript の学習を目的に制作。
 - 科目別・日別・月別の集計
 - グラフによる可視化
   
-[Study Rec.pdf](https://github.com/user-attachments/files/24461958/Study.Rec.pdf)
+<img width="800" height="2000" alt="1" src="https://github.com/user-attachments/assets/90e54ce9-8480-4f00-8be7-ac4bc364ec87" />
+
+<img width="800" height="2000" alt="2" src="https://github.com/user-attachments/assets/cded0826-9179-4acd-bc19-bae4d212a6d2" />
