@@ -17,3 +17,5 @@ React + TypeScript の学習を目的に制作。
 - 学習記録の追加
 - 科目別・日別・月別の集計
 - グラフによる可視化
+  
+[Study Rec.pdf](https://github.com/user-attachments/files/24461958/Study.Rec.pdf)
