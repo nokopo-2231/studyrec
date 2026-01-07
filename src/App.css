@@ -1,0 +1,54 @@
+#root {
+  min-height: 100vh;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background-color: #ffeda4;
+  color: #222;
+  font-family: system-ui, sans-serif;
+}
+
+ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+header {
+  width: 100%;
+  background-color: #fff;
+}
+
+main {
+  max-width: 1024px;
+  margin: 0 auto;
+  padding: 20px;
+  width: 100%;
+}
+
+.card {
+  background: #fff;
+  border: 1.5px solid #000;
+  border-radius: 16px;
+  padding: 20px 50px;
+  margin: 10px auto;
+}
+
+.sectionTitle {
+  font-size: 18px;
+  width: fit-content;
+  background: #fff;
+  border: 1.5px solid #000;
+  border-radius: 9999px;
+  padding: 15px 20px;
+}

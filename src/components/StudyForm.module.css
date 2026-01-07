@@ -1,0 +1,42 @@
+/* フォームの並び（横並び） */
+.formRow {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  width: 100%;
+  align-items: center;
+}
+
+/* 入力欄・セレクトボックス共通のスタイル */
+.inputField {
+  width: 100%;
+  height: 48px;
+  padding: 0 20px;
+  border: 1px solid #333; /* 画像に合わせた細めの黒枠 */
+  border-radius: 24px;   /* カプセル型 */
+  font-size: 16px;
+  color: #4a5568;
+  background-color: white;
+  outline: none;
+  appearance: none;      /* ブラウザ標準の矢印などを消す（必要に応じて） */
+}
+
+/* 右上の円形ボタン */
+.submitButton {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background-color: #5ba193; /* 画像のグリーン */
+  color: white;
+  border: none;
+  cursor: pointer;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0; /* 潰れないように固定 */
+}
+
+.submitButton:hover {
+  opacity: 0.9;
+}

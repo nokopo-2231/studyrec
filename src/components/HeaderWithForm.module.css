@@ -1,0 +1,30 @@
+/* HeaderWithForm.module.css */
+.container {
+  width: 100%;
+  background-color: #fff; 
+  border-bottom: 1px solid #ddd;
+}
+
+.inner,
+.formSection {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 12px 30px;
+}
+
+.inner {
+  display: flex;
+  flex-direction: column; /* 上下に並べる */
+  gap: 10px; /* ロゴ行とフォーム行の間の隙間 */
+}
+
+.formSection {
+  width: 100%;
+  padding-bottom: 20px;
+  animation: fadeIn 0.3s ease-out; /* ふわっと表示 */
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-10px); }
+  to { opacity: 1; transform: translateY(0); }
+}

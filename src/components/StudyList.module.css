@@ -1,0 +1,7 @@
+.list {
+  display: flex;
+  gap: 16px;
+  justify-content: center;
+  align-items: center;
+  /* border: solid red; */
+}
