@@ -17,3 +17,5 @@ React + TypeScript の学習を目的に制作。
 - 学習記録の追加
 - 科目別・日別・月別の集計
 - グラフによる可視化
+  
+<img width="300" height="auto" alt="1" src="https://github.com/user-attachments/assets/90e54ce9-8480-4f00-8be7-ac4bc364ec87" /> <img width="300" height="auto" alt="2" src="https://github.com/user-attachments/assets/cded0826-9179-4acd-bc19-bae4d212a6d2" />
