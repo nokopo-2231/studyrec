@@ -1,7 +1,182 @@
+/* リスト全体 */
 .list {
+  list-style: none;
+  padding: 0;
   display: flex;
-  gap: 16px;
-  justify-content: center;
-  align-items: center;
-  /* border: solid red; */
+  flex-direction: column;
+  gap: 12px;
 }
+
+/* カードの基本構造（共通） */
+.itemContainer, .emptyItem {
+  display: flex;
+  align-items: center;
+  background: #fff;
+  border: 2px solid #000;
+  border-radius: 50px; /* カプセル型 */
+  padding: 15px 40px;
+  min-height: 90px;
+}
+
+/* 左側：日付エリア */
+.dateSide {
+  font-size: 1rem;
+  padding: 15px 20px 15px 0;
+  border-right: 2px solid #eee;
+  min-width: 110px;
+  flex-shrink: 0;
+  align-self: stretch; /* 縦線を下まで伸ばす */
+  display: flex;
+  align-items: center;
+}
+
+/* 内容エリア */
+.contentSide, .noStudyText {
+  flex-grow: 1;
+  padding-left: 40px;
+  display: flex;
+  align-items: center;
+}
+
+.recordInfo {
+  display: flex;
+  gap: 40px;
+  font-size: 1.2rem;
+}
+
+.noStudyText {
+  color: #ccc;
+  font-size: 1.2rem;
+  min-height: 50px;
+}
+
+/* ボタンのスタイル */
+.buttonGroup {
+  display: flex;
+  gap: 12px;
+}
+
+.editBtn, .deleteBtn, .saveBtn, .cancelBtn {
+  border: none;
+  border-radius: 20px;
+  padding: 8px 25px;
+  color: white;
+  font-weight: bold;
+  cursor: pointer;
+  font-size: 0.9rem;
+}
+
+.editBtn { background-color: #4eb0c9; } /* 水色 */
+.deleteBtn { background-color: #d89669; } /* 茶・オレンジ系 */
+.saveBtn { background-color: #4caf50; }
+.cancelBtn { background-color: #999; }
+
+/* 編集中の入力欄 */
+.editInput {
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  padding: 5px 10px;
+  margin-right: 10px;
+  width: 100px;
+}
+
+/* 1日分の大きな枠 */
+.dayRow {
+  display: flex;
+  align-items: flex-start; /* 複数行になっても日付は上に固定 */
+  background: white;
+  border: 2px solid #000;
+  border-radius: 40px;
+  padding: 15px 30px;
+  min-height: 80px;
+}
+
+/* 右側：レコードが並ぶエリア */
+.recordsContainer {
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column; /* 複数科目を縦に並べる */
+  justify-content: center;
+  min-height: 50px;
+}
+
+/* 各レコードの行 */
+.itemWrapper {
+  padding: 10px 0 10px 30px;
+  border-bottom: 1px solid #f5f5f5; /* 科目間の区切り線 */
+}
+.itemWrapper:last-child {
+  border-bottom: none;
+}
+
+/* 共通の大きな外枠 */
+.dayCard {
+  background: white;
+  border: 2px solid #000;
+  border-radius: 40px;
+  min-height: 80px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  overflow: hidden;
+  margin-bottom: 12px;
+}
+
+/* 「勉強していません」の時のレイアウト */
+.emptyContent {
+  display: flex;
+  align-items: center;
+  padding: 15px 35px;
+}
+
+.dateSide {
+  font-size: 1rem;
+  min-width: 110px;
+  padding-right: 20px;
+  border-right: 2px solid #eee;
+  color: #333;
+}
+
+.noStudyText {
+  padding-left: 35px;
+  color: #ccc;
+}
+
+/* 追加されたレコードのレイアウト */
+.recordsStack {
+  width: 100%;
+}
+
+.itemRow {
+  display: flex;
+  align-items: center;
+  padding: 15px 35px;
+  border-bottom: 1px solid #f0f0f0; /* 複数科目ある時の区切り線 */
+}
+.itemRow:last-child { border-bottom: none; }
+
+/* 科目（元の日付の位置） */
+.subjectSide {
+  font-size: 1.1rem;
+  font-weight: bold;
+  min-width: 110px;
+  padding-right: 20px;
+  border-right: 2px solid #eee;
+  color: #333;
+}
+
+/* 時間（中央） */
+.durationCenter {
+  flex-grow: 1;
+  padding-left: 35px;
+  font-size: 1.1rem;
+}
+
+/* ボタン（右端） */
+.buttonSide {
+  display: flex;
+  gap: 8px;
+}
+
+.editBtn { background-color: #4eb0c9; border: none; border: 1.5px solid #000; color: white; padding: 5px 15px; }
+.deleteBtn { background-color: #d89669; border: none; border: 1.5px solid #000; color: white; padding: 5px 15px; }

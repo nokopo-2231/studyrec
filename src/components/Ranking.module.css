@@ -1,0 +1,102 @@
+.rankingContainer {
+    padding: 10px 0;
+    text-align: center;
+}
+
+.titleArea {
+    margin-bottom: 25px;
+}
+
+.crown {
+    font-size: 32px;
+    display: block;
+    margin-bottom: 5px;
+}
+
+.titleText {
+    font-weight: bold;
+    color: #333;
+    margin: 0;
+}
+
+.list {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 20px;
+    width: 100%;
+}
+
+.rankItem {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    max-width: 400px;
+    padding: 12px 0;
+    background: white;
+    border: 1.5px solid #000;
+    border-radius: 50px;
+    position: relative;
+    transform-style: preserve-3d;
+}
+
+/* 画像のような立体的な影 */
+.rankItem::after {
+    content: "";
+    position: absolute;
+    top: 4px;
+    left: 4px;
+    right: -6px;
+    bottom: -6px;
+    border-radius: 50px;
+    transform: translateZ(-1px); 
+    z-index: -1;
+}
+
+/* 1位（赤系）と2位（緑系）の影の色 */
+.rank0::after { background-color: #f28b7d; }
+.rank1::after { background-color: #2a9d8f; }
+.rank2::after { background-color: #f4d03f; } 
+
+.subject {
+    flex: 1;
+    text-align: right;
+    padding-right: 15px; /* 中央の隙間 */
+    font-size: 0.9rem;
+    letter-spacing: 0.05em;
+}
+
+.empty {
+    color: #999;
+    font-size: 0.9rem;
+}
+
+.durationValue {
+    flex: 1;
+    text-align: left;
+    padding-left: 15px;
+    display: flex;
+    align-items: baseline; /* 数字と単位の下端を揃える */
+}
+
+.bigNum {
+    font-size: 1.4rem; /* 統計部分と同じサイズ */
+    font-weight: bold;
+    margin: 0 2px;
+    color: #2c3e50;
+}
+
+.unit {
+    font-size: 0.75rem; /* 単位は小さく */
+    color: #2c3e50;
+}
+
+.subject {
+    flex: 1;
+    text-align: right;
+    padding-right: 15px;
+    font-size: 1rem;
+    letter-spacing: 0.05em;
+    color: #2c3e50;
+}

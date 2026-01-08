@@ -8,21 +8,61 @@ type Props = {
   onUpdate: (record: StudyRecord) => void
 }
 
-
 const StudyList = ({ records, onDelete, onUpdate }: Props) => {
-  if (records.length === 0) {
-    return <p>まだ勉強していません</p>
-  }
+  // 今週の月曜日から日曜日までの日付文字列(YYYY-MM-DD)の配列を作る
+  const getWeekDates = () => {
+    const now = new Date();
+    const day = now.getDay();
+    // 日曜日(0)を週の最後にするための調整
+    const diffToMon = day === 0 ? -6 : 1 - day;
+    const monday = new Date(now);
+    monday.setDate(now.getDate() + diffToMon);
+
+    return [...Array(7)].map((_, i) => {
+      const d = new Date(monday);
+      d.setDate(monday.getDate() + i);
+      // ローカルの日付を YYYY-MM-DD 形式で取得
+      const y = d.getFullYear();
+      const m = String(d.getMonth() + 1).padStart(2, '0');
+      const day = String(d.getDate()).padStart(2, '0');
+      return `${y}-${m}-${day}`;
+    });
+  };
+
+  const weekDates = getWeekDates();
 
   return (
     <ul className={styles.list}>
-      {records.map((record) => (
-        <StudyItem 
-        key={record.id} record={record} onDelete={onDelete} onUpdate={onUpdate} 
-        />
-      ))}
-    </ul>
-  )
-}
+      {weekDates.map((dateStr) => {
+        // その日のレコードを探す
+        const dayRecords = records.filter((r) => r.date === dateStr);
 
-export default StudyList
+        return (
+          <li key={dateStr} className={styles.dayRow}>
+            {/* 左側：日付（1つだけ表示） */}
+            <div className={styles.dateSide}>{dateStr}</div>
+
+            {/* 右側：その日の勉強内容リスト */}
+            <div className={styles.recordsContainer}>
+              {dayRecords.length > 0 ? (
+                dayRecords.map((record) => (
+                  <div key={record.id} className={styles.itemWrapper}>
+                    <StudyItem
+                      record={record}
+                      onDelete={onDelete}
+                      onUpdate={onUpdate}
+                    />
+                  </div>
+                ))
+              ) : (
+                <div className={styles.noStudyText}>勉強していません</div>
+              )}
+            </div>
+          </li>
+        );
+      })}
+    </ul>
+  );
+};
+
+export default StudyList;
