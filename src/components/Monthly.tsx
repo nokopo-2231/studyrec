@@ -17,7 +17,11 @@ const Monthly = ({ records }: Props) => {
   const remainingMinutes = totalMinutes % 60
   
   // 平均の計算 (1月=31日で計算)
-  const avgMinutesTotal = Math.floor(totalMinutes / 31)
+  const studiedDaysCount = records.length
+
+  const avgMinutesTotal =
+    studiedDaysCount === 0 ? 0 : Math.floor(totalMinutes / studiedDaysCount)
+
   const avgHours = Math.floor(avgMinutesTotal / 60)
   const avgMinutes = avgMinutesTotal % 60
 
@@ -53,7 +57,7 @@ const Monthly = ({ records }: Props) => {
 
         <div className={styles.statsContainer}>
           <div className={styles.statBox}>
-            <p className={styles.statLabel}>平均</p>
+            <p className={styles.statLabel}>月平均</p>
             <p className={styles.statValue}>
               <span className={styles.bigNum}>{avgHours}</span>時間
               <span className={styles.bigNum}>{avgMinutes}</span>分/日
@@ -63,7 +67,7 @@ const Monthly = ({ records }: Props) => {
           <div className={styles.divider}></div>
           
           <div className={styles.statBox}>
-            <p className={styles.statLabel}>合計</p>
+            <p className={styles.statLabel}>月合計</p>
             <p className={styles.statValue}>
               <span className={styles.bigNum}>{totalHours}</span>時間
               <span className={styles.bigNum}>{remainingMinutes}</span>分
