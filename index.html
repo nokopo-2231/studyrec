@@ -1,12 +1,56 @@
-<!doctype html>
+<!-- <!doctype html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/vite.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>reactapp</title>
+    <title>StudyReco</title>
   </head>
   <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html> -->
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="./images/favicon.png" />
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>StudyReco - 学習記録管理アプリ</title>
+    <meta name="description" content="StudyReco(スタディレコ)は日々の学習記録を管理して分析できるアプリです。学習の可視化で効率アップ！" />
+    <meta name="keywords" content="学習,勉強記録,StudyReco,スタディレコ,学習管理,学習アプリ" />
+
+    <!-- Open Graph / SNS用 -->
+    <meta property="og:title" content="StudyReco - 学習記録管理アプリ" />
+    <meta property="og:description" content="日々の学習を記録して分析できるアプリです。" />
+    <meta property="og:image" content="./images/og-image.jpg" />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://studyreco.web.app/" />
+    <meta property="og:site_name" content="StudyReco" />
+
+    <!-- x用 -->
+    <meta name="x:card" content="summary_large_image" />
+    <meta name="x:title" content="StudyReco - 学習記録管理アプリ" />
+    <meta name="x:description" content="日々の学習を記録して分析できるアプリです。" />
+    <meta name="x:image" content="./images/og-image.jpg" />
+
+    <!-- 構造化データ (JSON-LD) -->
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "WebApplication",
+        "name": "StudyReco",
+        "url": "https://studyreco.web.app/",
+        "applicationCategory": "EducationApplication",
+        "description": "日々の学習を記録して分析できるアプリです。",
+        "operatingSystem": "Web"
+      }
+    </script>
+  </head>
+  <body>
+    <h1 style="display:none;">StudyReco - 学習記録管理アプリ</h1>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
