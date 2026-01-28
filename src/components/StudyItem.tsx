@@ -22,8 +22,15 @@ const StudyItem = ({ record, onDelete, onUpdate }: Props) => {
       <div className={styles.durationCenter}>
         {isEditing ? (
           <div className={styles.editInputs}>
-            <input value={subject} onChange={(e) => setSubject(e.target.value)} />
-            <input type="number" value={duration} onChange={(e) => setDuration(e.target.value)} />
+            <input 
+              className={styles.editInput}
+              value={subject} 
+              onChange={(e) => setSubject(e.target.value)} />
+            <input 
+              className={styles.editInput}
+              type="number" 
+              value={duration} 
+              onChange={(e) => setDuration(e.target.value)} />
           </div>
         ) : (
           <span className={styles.durationText}>{record.duration}min</span>

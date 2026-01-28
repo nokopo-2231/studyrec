@@ -19,6 +19,11 @@
   background-color: white;
   outline: none;
   appearance: none;      /* ブラウザ標準の矢印などを消す（必要に応じて） */
+  text-align: center;
+}
+
+.inputField option {
+  text-align: center;
 }
 
 /* 右上の円形ボタン */
@@ -50,7 +55,8 @@
 
   .inputField {
     height: 50px; /* スマホでタップしやすいように少し高く */
-    font-size: 16px; /* 入力時に勝手にズームされるのを防ぐ（iOS対策） */
+    font-size: 16px; /* 入力時に勝手にズームされるのを防ぐ */
     padding: 0 16px;
+    text-align-last: center;
   }
 }
