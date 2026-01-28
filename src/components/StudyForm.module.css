@@ -40,3 +40,17 @@
 .submitButton:hover {
   opacity: 0.9;
 }
+
+@media (max-width: 600px) {
+  .formRow {
+    /* 横3列から、1列（縦並び）に変更 */
+    grid-template-columns: 1fr; 
+    gap: 16px; /* 縦に並んだ時の間隔を少し広げる */
+  }
+
+  .inputField {
+    height: 50px; /* スマホでタップしやすいように少し高く */
+    font-size: 16px; /* 入力時に勝手にズームされるのを防ぐ（iOS対策） */
+    padding: 0 16px;
+  }
+}

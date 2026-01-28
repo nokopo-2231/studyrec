@@ -48,6 +48,7 @@
   color: #ccc;
   font-size: 1.2rem;
   min-height: 50px;
+  padding-left: 20%;
 }
 
 /* ボタンのスタイル */
@@ -180,3 +181,10 @@
 
 .editBtn { background-color: #4eb0c9; border: none; border: 1.5px solid #000; color: white; padding: 5px 15px; }
 .deleteBtn { background-color: #d89669; border: none; border: 1.5px solid #000; color: white; padding: 5px 15px; }
+
+
+@media (max-width: 768px) {
+  .noStudyText {
+    font-size: 0.9rem;
+  }
+}
