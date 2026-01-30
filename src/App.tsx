@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import './App.css'
 import HeaderWithForm from './components/HeaderWithForm'
 import Monthly from './components/Monthly'
@@ -6,7 +6,8 @@ import StudyList from './components/StudyList'
 import { BarChart } from './components/BarChart'
 import type { StudyRecord } from './types/study'
 import Ranking from './components/Ranking'
-
+import { db } from "./firebase"; 
+import { collection, addDoc, getDocs, updateDoc, doc, deleteDoc } from "firebase/firestore";
 
 
 function App() {
@@ -15,67 +16,106 @@ function App() {
   const [duration, setDuration] = useState('')
   const [records, setRecords] = useState<StudyRecord[]>([])
 
+//ページ読み込み時にFirestoreからデータを取得 (Read)
+  useEffect(() => {
+    const fetchRecords = async () => {
+      try {
+        // "records"コレクションからデータを取得
+        const querySnapshot = await getDocs(collection(db, "records"));
+        const loadedRecords = querySnapshot.docs.map(doc => ({
+          id: doc.id,
+          ...doc.data()
+        })) as StudyRecord[];
 
-  // App.tsx の addRecord を以下に差し替え
-const addRecord = () => {
-  if (!date || !subject || !duration) return;
+        // 取得したデータを画面のstateにセット
+        setRecords(loadedRecords);
+        } catch (e) {
+        console.error("読み込みエラー:", e);
+      }
+    };
 
-  const newRecord: StudyRecord = {
-    id: crypto.randomUUID(),
-    date, // "YYYY-MM-DD" 形式
-    subject,
-    duration: Number(duration),
-  };
+    fetchRecords();
+    }, []); // [] は「初回のみ実行」の意味
 
-  setRecords((prev) => {
-    // 1. 新しいレコードを追加
-    const updated = [...prev, newRecord];
-
-    // 2. 今週の月曜日と日曜日の範囲を計算
-    const now = new Date();
-    const day = now.getDay(); // 0(日)〜6(土)
-    const diffToMon = day === 0 ? -6 : 1 - day; 
+    //記録を追加してFirestoreに保存 (Create)
+    const addRecord = async () => {
+      if (!date || !subject || !duration) return;
     
-    // 月曜日の 00:00:00
-    const monday = new Date(now);
-    monday.setDate(now.getDate() + diffToMon);
-    monday.setHours(0, 0, 0, 0);
 
-    // 日曜日の 23:59:59
-    const sunday = new Date(monday);
-    sunday.setDate(monday.getDate() + 6);
-    sunday.setHours(23, 59, 59, 999);
+      try {
+        // Firestore にデータを保存
+        const docRef = await addDoc(collection(db, "records"), {
+          date,
+          subject,
+          duration: Number(duration),
+          createdAt: new Date(), 
+        });
 
-    // 3. 月〜日の範囲内のデータだけを残す（かつ、同じ日の同じ科目を重複させないならここで調整も可能）
-    return updated.filter((r) => {
-      const recordDate = new Date(r.date);
-      return recordDate >= monday && recordDate <= sunday;
-    });
-  });
+        // 画面表示用の新しいレコード
+          const newRecord: StudyRecord = {
+            id: docRef.id,
+            date,
+            subject,
+            duration: Number(duration),
+          };
 
-  // 入力フォームをリセット
-  setSubject('');
-  setDuration('');
-};
+          // フィルタリング計算（既存のロジック）
+          const now = new Date();
+          const day = now.getDay();
+          const diffToMon = day === 0 ? -6 : 1 - day; 
+          const monday = new Date(now);
+          monday.setDate(now.getDate() + diffToMon);
+          monday.setHours(0, 0, 0, 0);
+          const sunday = new Date(monday);
+          sunday.setDate(monday.getDate() + 6);
+          sunday.setHours(23, 59, 59, 999);
 
+          setRecords((prev) => {
+            const updated = [...prev, newRecord];
+            return updated.filter((r) => {
+              const recordDate = new Date(r.date);
+              return recordDate >= monday && recordDate <= sunday;
+            });
+          });
 
-  // const totalMinutes = records.reduce(
-  //     (sum, r) => sum + r.duration,
-  //     0
-  //   );
+          setSubject('');
+          setDuration('');
+          alert("クラウドに保存しました！");
+        } catch (e) {
+          console.error("保存失敗:", e);
+        }
+      };
 
-  // レコード削除
-  const deleteRecord = (id: string) => {
-    setRecords(prev => prev.filter(r => r.id !== id))
-  };
+    // レコード削除
+    const deleteRecord = async (id: string) => {
+      try {
+        // 1. Firestore から削除
+        await deleteDoc(doc(db, "records", id));
 
-  // レコード更新
-  const updateRecord = (updated: StudyRecord) => {
-  setRecords(prev =>
-    prev.map(r => r.id === updated.id ? updated : r)
-  )
-}
+        // 2. 画面（State）から削除
+        setRecords(prev => prev.filter(r => r.id !== id));
+        
+        console.log("削除完了！");
+      } catch (e) {
+        console.error("削除に失敗しました: ", e);
+      }
+    };
 
+    // レコード更新
+    const updateRecord = async (updated: StudyRecord) => {
+      try {
+        const recordRef = doc(db, "records", updated.id);
+        await updateDoc(recordRef, {
+          date: updated.date,
+          subject: updated.subject,
+          duration: updated.duration
+        });
+        
+        setRecords(prev => prev.map(r => r.id === updated.id ? updated : r));
+      } catch (e) {
+        console.error("更新失敗:", e);
+      }
+    };
 
   return (
     <div className="app">
