@@ -1,7 +1,8 @@
 // Import the functions you need from the SDKs you need
 import { initializeApp } from "firebase/app";
-import { getAnalytics, type Analytics } from "firebase/analytics";
 import { getFirestore } from "firebase/firestore";
+import { getAnalytics, type Analytics } from "firebase/analytics";
+import { getAuth, GoogleAuthProvider } from "firebase/auth";
 // TODO: Add SDKs for Firebase products that you want to use
 // https://firebase.google.com/docs/web/setup#available-libraries
 
@@ -17,13 +18,19 @@ const firebaseConfig = {
   measurementId: "G-1WHB6BZEWE"
 };
 
-// 1. Firebase Appの初期化
+// Firebase Appの初期化
 const app = initializeApp(firebaseConfig);
 
-// 2. Firestoreの初期化とエクスポート
+// Firestoreの初期化とエクスポート
 export const db = getFirestore(app);
 
-// 3. Analyticsの初期化とエクスポート
+// 認証機能をエクスポート
+export const auth = getAuth(app);
+
+// Googleログイン用
+export const googleProvider = new GoogleAuthProvider();
+
+// Analyticsの初期化とエクスポート
 // ブラウザ環境（windowがある時）だけ初期化するようにします
 export let analytics: Analytics;
 
