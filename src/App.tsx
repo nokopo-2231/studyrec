@@ -6,7 +6,8 @@ import StudyList from './components/StudyList'
 import { BarChart } from './components/BarChart'
 import type { StudyRecord } from './types/study'
 import Ranking from './components/Ranking'
-import { db } from "./firebase"; 
+import { db, analytics } from "./firebase"; 
+import { logEvent } from "firebase/analytics"; 
 import { collection, addDoc, getDocs, updateDoc, doc, deleteDoc } from "firebase/firestore";
 
 
@@ -18,6 +19,10 @@ function App() {
 
 //ページ読み込み時にFirestoreからデータを取得 (Read)
   useEffect(() => {
+    if (analytics) {
+      logEvent(analytics, 'page_view', { page_title: 'StudyAppMain' });
+    }
+
     const fetchRecords = async () => {
       try {
         // "records"コレクションからデータを取得
@@ -41,7 +46,6 @@ function App() {
     const addRecord = async () => {
       if (!date || !subject || !duration) return;
     
-
       try {
         // Firestore にデータを保存
         const docRef = await addDoc(collection(db, "records"), {
@@ -50,6 +54,14 @@ function App() {
           duration: Number(duration),
           createdAt: new Date(), 
         });
+
+        // 記録成功イベントをAnalyticsに送信
+        if (analytics) {
+          logEvent(analytics, 'add_study_record', {
+            subject: subject,
+            duration: Number(duration)
+          });
+        }
 
         // 画面表示用の新しいレコード
           const newRecord: StudyRecord = {
@@ -91,6 +103,11 @@ function App() {
       try {
         // 1. Firestore から削除
         await deleteDoc(doc(db, "records", id));
+
+        // Analyticsに送信
+        if (analytics) {
+        logEvent(analytics, 'delete_study_record');
+        }
 
         // 2. 画面（State）から削除
         setRecords(prev => prev.filter(r => r.id !== id));
