@@ -6,137 +6,161 @@ import StudyList from './components/StudyList'
 import { BarChart } from './components/BarChart'
 import type { StudyRecord } from './types/study'
 import Ranking from './components/Ranking'
-import { db, analytics } from "./firebase"; 
+import { db, analytics, auth, googleProvider } from "./firebase"; 
 import { logEvent } from "firebase/analytics"; 
-import { collection, addDoc, getDocs, updateDoc, doc, deleteDoc } from "firebase/firestore";
-
+import { collection, addDoc, getDocs, updateDoc, doc, deleteDoc, query, where } from "firebase/firestore"; // query, where を追加
+import { signInWithPopup, onAuthStateChanged, signOut, type User } from "firebase/auth"; 
 
 function App() {
   const [date, setDate] = useState('')
   const [subject, setSubject] = useState('')
   const [duration, setDuration] = useState('')
   const [records, setRecords] = useState<StudyRecord[]>([])
+  const [user, setUser] = useState<User | null>(null);
 
-//ページ読み込み時にFirestoreからデータを取得 (Read)
+  // 1. ログイン状態の監視
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+      setUser(currentUser);
+    });
+    return () => unsubscribe();
+  }, []);
+
+  // 2. ログイン時のみ、そのユーザーのデータを取得
   useEffect(() => {
     if (analytics) {
       logEvent(analytics, 'page_view', { page_title: 'StudyAppMain' });
     }
 
-    const fetchRecords = async () => {
-      try {
-        // "records"コレクションからデータを取得
-        const querySnapshot = await getDocs(collection(db, "records"));
-        const loadedRecords = querySnapshot.docs.map(doc => ({
-          id: doc.id,
-          ...doc.data()
-        })) as StudyRecord[];
+    if (user) {
+      fetchRecords();
+    } else {
+      setRecords([]); // ログアウト時はリストを空にする
+    }
+  }, [user]);
 
-        // 取得したデータを画面のstateにセット
-        setRecords(loadedRecords);
-        } catch (e) {
-        console.error("読み込みエラー:", e);
+  const login = async () => {
+    try {
+      await signInWithPopup(auth, googleProvider);
+    } catch (error) {
+      console.error("ログイン失敗:", error);
+    }
+  };
+
+  const logout = () => signOut(auth);
+
+  // --- Firestore操作 ---
+
+  // 取得：自分のUIDに一致するデータのみ
+  const fetchRecords = async () => {
+    if (!user) return;
+    try {
+      const q = query(collection(db, "records"), where("uid", "==", user.uid));
+      const querySnapshot = await getDocs(q);
+      const loadedRecords = querySnapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      })) as StudyRecord[];
+      setRecords(loadedRecords);
+    } catch (e) {
+      console.error("読み込みエラー:", e);
+    }
+  };
+
+  // 保存：自分のUIDをセットして保存
+  const addRecord = async () => {
+    if (!user || !date || !subject || !duration) return;
+    try {
+      const docRef = await addDoc(collection(db, "records"), {
+        uid: user.uid, // ★誰のデータか記録する
+        date,
+        subject,
+        duration: Number(duration),
+        createdAt: new Date(), 
+      });
+
+      if (analytics) {
+        logEvent(analytics, 'add_study_record', { subject, duration: Number(duration) });
       }
-    };
 
-    fetchRecords();
-    }, []); // [] は「初回のみ実行」の意味
-
-    //記録を追加してFirestoreに保存 (Create)
-    const addRecord = async () => {
-      if (!date || !subject || !duration) return;
-    
-      try {
-        // Firestore にデータを保存
-        const docRef = await addDoc(collection(db, "records"), {
-          date,
-          subject,
-          duration: Number(duration),
-          createdAt: new Date(), 
-        });
-
-        // 記録成功イベントをAnalyticsに送信
-        if (analytics) {
-          logEvent(analytics, 'add_study_record', {
-            subject: subject,
-            duration: Number(duration)
-          });
-        }
-
-        // 画面表示用の新しいレコード
-          const newRecord: StudyRecord = {
-            id: docRef.id,
-            date,
-            subject,
-            duration: Number(duration),
-          };
-
-          // フィルタリング計算（既存のロジック）
-          const now = new Date();
-          const day = now.getDay();
-          const diffToMon = day === 0 ? -6 : 1 - day; 
-          const monday = new Date(now);
-          monday.setDate(now.getDate() + diffToMon);
-          monday.setHours(0, 0, 0, 0);
-          const sunday = new Date(monday);
-          sunday.setDate(monday.getDate() + 6);
-          sunday.setHours(23, 59, 59, 999);
-
-          setRecords((prev) => {
-            const updated = [...prev, newRecord];
-            return updated.filter((r) => {
-              const recordDate = new Date(r.date);
-              return recordDate >= monday && recordDate <= sunday;
-            });
-          });
-
-          setSubject('');
-          setDuration('');
-          alert("クラウドに保存しました！");
-        } catch (e) {
-          console.error("保存失敗:", e);
-        }
+      const newRecord: StudyRecord = {
+        id: docRef.id,
+        date,
+        subject,
+        duration: Number(duration),
       };
 
-    // レコード削除
-    const deleteRecord = async (id: string) => {
-      try {
-        // 1. Firestore から削除
-        await deleteDoc(doc(db, "records", id));
+      // 画面反映（今週分フィルタリング）
+      const now = new Date();
+      const day = now.getDay();
+      const diffToMon = day === 0 ? -6 : 1 - day; 
+      const monday = new Date(now);
+      monday.setDate(now.getDate() + diffToMon);
+      monday.setHours(0, 0, 0, 0);
+      const sunday = new Date(monday);
+      sunday.setDate(monday.getDate() + 6);
+      sunday.setHours(23, 59, 59, 999);
 
-        // Analyticsに送信
-        if (analytics) {
-        logEvent(analytics, 'delete_study_record');
-        }
-
-        // 2. 画面（State）から削除
-        setRecords(prev => prev.filter(r => r.id !== id));
-        
-        console.log("削除完了！");
-      } catch (e) {
-        console.error("削除に失敗しました: ", e);
-      }
-    };
-
-    // レコード更新
-    const updateRecord = async (updated: StudyRecord) => {
-      try {
-        const recordRef = doc(db, "records", updated.id);
-        await updateDoc(recordRef, {
-          date: updated.date,
-          subject: updated.subject,
-          duration: updated.duration
+      setRecords((prev) => {
+        const updated = [...prev, newRecord];
+        return updated.filter((r) => {
+          const recordDate = new Date(r.date);
+          return recordDate >= monday && recordDate <= sunday;
         });
-        
-        setRecords(prev => prev.map(r => r.id === updated.id ? updated : r));
-      } catch (e) {
-        console.error("更新失敗:", e);
-      }
-    };
+      });
+
+      setSubject('');
+      setDuration('');
+      alert("自分専用のクラウドに保存しました！");
+    } catch (e) {
+      console.error("保存失敗:", e);
+    }
+  };
+
+  const deleteRecord = async (id: string) => {
+    try {
+      await deleteDoc(doc(db, "records", id));
+      setRecords(prev => prev.filter(r => r.id !== id));
+    } catch (e) {
+      console.error("削除失敗: ", e);
+    }
+  };
+
+  const updateRecord = async (updated: StudyRecord) => {
+    try {
+      const recordRef = doc(db, "records", updated.id);
+      await updateDoc(recordRef, {
+        date: updated.date,
+        subject: updated.subject,
+        duration: updated.duration
+      });
+      setRecords(prev => prev.map(r => r.id === updated.id ? updated : r));
+    } catch (e) {
+      console.error("更新失敗:", e);
+    }
+  };
+
+  // --- 表示分岐 ---
+
+  if (!user) {
+    return (
+      <div className="login-container" style={{ textAlign: 'center', marginTop: '100px' }}>
+        <h1>学習管理アプリ</h1>
+        <p>ログインすると、あなた専用の学習記録を保存できます。</p>
+        <button onClick={login} style={{ padding: '10px 20px', fontSize: '1.2rem', cursor: 'pointer' }}>
+          Googleでログインして始める
+        </button>
+      </div>
+    );
+  }
 
   return (
     <div className="app">
       <header>
+        <div style={{ textAlign: 'right', padding: '10px', fontSize: '0.8rem' }}>
+          <span>{user.email} でログイン中</span>
+          <button onClick={logout} style={{ marginLeft: '10px' }}>ログアウト</button>
+        </div>
         <HeaderWithForm 
             date={date}
             subject={subject}
@@ -147,31 +171,16 @@ function App() {
             onSubmit={addRecord}
           />
       </header>
-
       <main>
         <h2 className="sectionTitle">MONTHLY</h2>
-        <div className="card">
-          <Monthly records={records} />
-        </div>
-
-        <div className="card">
-          <Ranking records={records} />
-        </div>
-
-        <div className="card">
-          <BarChart records={records} />
-        </div>
-
+        <div className="card"><Monthly records={records} /></div>
+        <div className="card"><Ranking records={records} /></div>
+        <div className="card"><BarChart records={records} /></div>
         <h2 className="sectionTitle">RECORD</h2>
-          <StudyList
-            records={records}
-            onDelete={deleteRecord}
-            onUpdate={updateRecord}
-          /> 
+        <StudyList records={records} onDelete={deleteRecord} onUpdate={updateRecord} /> 
       </main>
-
     </div>
-  )
+  );
 }
 
-export default App
+export default App;
