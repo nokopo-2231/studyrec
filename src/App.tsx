@@ -8,7 +8,7 @@ import type { StudyRecord } from './types/study'
 import Ranking from './components/Ranking'
 import { db, analytics, auth, googleProvider } from "./firebase"; 
 import { logEvent } from "firebase/analytics"; 
-import { collection, addDoc, getDocs, updateDoc, doc, deleteDoc, query, where } from "firebase/firestore"; // query, where を追加
+import { collection, addDoc, getDocs, updateDoc, doc, deleteDoc, query, where } from "firebase/firestore"; 
 import { signInWithPopup, onAuthStateChanged, signOut, type User } from "firebase/auth"; 
 
 function App() {
@@ -26,7 +26,7 @@ function App() {
     return () => unsubscribe();
   }, []);
 
-  // 2. ログイン時のみ、そのユーザーのデータを取得
+  // 2. ログイン時のみデータを取得
   useEffect(() => {
     if (analytics) {
       logEvent(analytics, 'page_view', { page_title: 'StudyAppMain' });
@@ -35,7 +35,7 @@ function App() {
     if (user) {
       fetchRecords();
     } else {
-      setRecords([]); // ログアウト時はリストを空にする
+      setRecords([]); 
     }
   }, [user]);
 
@@ -51,7 +51,6 @@ function App() {
 
   // --- Firestore操作 ---
 
-  // 取得：自分のUIDに一致するデータのみ
   const fetchRecords = async () => {
     if (!user) return;
     try {
@@ -67,12 +66,11 @@ function App() {
     }
   };
 
-  // 保存：自分のUIDをセットして保存
   const addRecord = async () => {
     if (!user || !date || !subject || !duration) return;
     try {
       const docRef = await addDoc(collection(db, "records"), {
-        uid: user.uid, // ★誰のデータか記録する
+        uid: user.uid,
         date,
         subject,
         duration: Number(duration),
@@ -90,24 +88,8 @@ function App() {
         duration: Number(duration),
       };
 
-      // 画面反映（今週分フィルタリング）
-      const now = new Date();
-      const day = now.getDay();
-      const diffToMon = day === 0 ? -6 : 1 - day; 
-      const monday = new Date(now);
-      monday.setDate(now.getDate() + diffToMon);
-      monday.setHours(0, 0, 0, 0);
-      const sunday = new Date(monday);
-      sunday.setDate(monday.getDate() + 6);
-      sunday.setHours(23, 59, 59, 999);
-
-      setRecords((prev) => {
-        const updated = [...prev, newRecord];
-        return updated.filter((r) => {
-          const recordDate = new Date(r.date);
-          return recordDate >= monday && recordDate <= sunday;
-        });
-      });
+      // recordsには全データを追加（Monthly表示用）
+      setRecords((prev) => [...prev, newRecord]);
 
       setSubject('');
       setDuration('');
@@ -139,6 +121,26 @@ function App() {
       console.error("更新失敗:", e);
     }
   };
+
+  // --- フィルタリングロジック ---
+
+  // StudyList（RECORDセクション）に表示する「今週分」のデータを抽出
+  const weeklyRecords = records.filter((r) => {
+    const now = new Date();
+    const day = now.getDay();
+    // 月曜日を週の始まりとする計算
+    const diffToMon = day === 0 ? -6 : 1 - day; 
+    const monday = new Date(now);
+    monday.setDate(now.getDate() + diffToMon);
+    monday.setHours(0, 0, 0, 0);
+
+    const sunday = new Date(monday);
+    sunday.setDate(monday.getDate() + 6);
+    sunday.setHours(23, 59, 59, 999);
+
+    const recordDate = new Date(r.date);
+    return recordDate >= monday && recordDate <= sunday;
+  });
 
   // --- 表示分岐 ---
 
@@ -173,11 +175,18 @@ function App() {
       </header>
       <main>
         <h2 className="sectionTitle">MONTHLY</h2>
+        {/* 月間カレンダーには全データを渡す */}
         <div className="card"><Monthly records={records} /></div>
         <div className="card"><Ranking records={records} /></div>
         <div className="card"><BarChart records={records} /></div>
-        <h2 className="sectionTitle">RECORD</h2>
-        <StudyList records={records} onDelete={deleteRecord} onUpdate={updateRecord} /> 
+        
+        <h2 className="sectionTitle">RECORD (今週の記録)</h2>
+        {/* 下のリストには今週分だけを渡す */}
+        <StudyList 
+          records={weeklyRecords} 
+          onDelete={deleteRecord} 
+          onUpdate={updateRecord} 
+        /> 
       </main>
     </div>
   );

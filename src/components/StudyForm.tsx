@@ -35,6 +35,7 @@ const StudyForm = ({
           className={styles.inputField}
           value={date}
           onChange={(e) => onDateChange(e.target.value)}
+          required
         />
 
         <select
