@@ -1,9 +1,10 @@
-import { useState } from 'react'
 import styles from './Monthly.module.css'
 import type { StudyRecord } from '../types/study'
 
 type Props = {
   records: StudyRecord[]
+  viewDate: Date 
+  onDateChange: (d: Date) => void 
 }
 
 const normalizeDate = (dateStr: string) => {
@@ -11,15 +12,13 @@ const normalizeDate = (dateStr: string) => {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
 }
 
-const Monthly = ({ records }: Props) => {
-  const [viewDate, setViewDate] = useState(new Date())
-
+const Monthly = ({ records, viewDate, onDateChange }: Props) => {
   const year = viewDate.getFullYear()
   const month = viewDate.getMonth()
 
   const changeMonth = (offset: number) => {
     const nextDate = new Date(year, month + offset, 1)
-    setViewDate(nextDate)
+    onDateChange(nextDate)
   }
 
   const firstDayOfMonth = new Date(year, month, 1).getDay()

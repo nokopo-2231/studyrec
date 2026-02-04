@@ -17,6 +17,8 @@ function App() {
   const [duration, setDuration] = useState('')
   const [records, setRecords] = useState<StudyRecord[]>([])
   const [user, setUser] = useState<User | null>(null);
+  // 表示中の月を親で管理する
+  const [currentDate, setCurrentDate] = useState(new Date())
 
   // 1. ログイン状態の監視
   useEffect(() => {
@@ -123,6 +125,12 @@ function App() {
   };
 
   // --- フィルタリングロジック ---
+  // RankingやMonthlyの統計用に「表示中の月」だけでフィルタリング
+  const monthlyRecords = records.filter(r => {
+    const d = new Date(r.date)
+    return d.getFullYear() === currentDate.getFullYear() && 
+           d.getMonth() === currentDate.getMonth()
+  })
 
   // StudyList（RECORDセクション）に表示する「今週分」のデータを抽出
   const weeklyRecords = records.filter((r) => {
@@ -173,12 +181,23 @@ function App() {
             onSubmit={addRecord}
           />
       </header>
+
       <main>
         <h2 className="sectionTitle">MONTHLY</h2>
         {/* 月間カレンダーには全データを渡す */}
-        <div className="card"><Monthly records={records} /></div>
-        <div className="card"><Ranking records={records} /></div>
-        <div className="card"><BarChart records={records} /></div>
+        <div className="card">
+          <Monthly 
+            records={records}
+            viewDate={currentDate} // 状態を渡す
+            onDateChange={setCurrentDate} // 変更関数を渡す
+          />
+        </div>
+        <div className="card">
+          <Ranking records={monthlyRecords} />
+        </div>
+        <div className="card">
+          <BarChart records={monthlyRecords} />
+        </div>
         
         <h2 className="sectionTitle">RECORD (今週の記録)</h2>
         {/* 下のリストには今週分だけを渡す */}
