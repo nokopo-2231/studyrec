@@ -14,7 +14,7 @@
   padding: 0 20px;
   border: 1px solid #333; /* 画像に合わせた細めの黒枠 */
   border-radius: 24px;   /* カプセル型 */
-  font-size: 16px;
+  font-size: 1rem;
   color: #4a5568;
   background-color: white;
   outline: none;
@@ -25,34 +25,18 @@
   text-align: center;
 }
 
-/* iOS Safari の date フォーム用 */
-.inputField[type="date"] {
-  appearance: none;
-  -webkit-appearance: none;
-  position: relative; /* 疑似要素の基準にする */
-  text-align: center;
-  font-size: 16px;
-  height: 50px;
-  background-color: white;
-  border-radius: 24px;
-  border: 1px solid #333;
+.dateBox {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  line-height: 1.2;
+  font-size: 1rem;
+  color: #4a5568;
 }
 
-/* ★追加：値が空の時に「日付を選択」という文字を表示する */
-.inputField[type="date"]:invalid::before {
-  content: "日付を選択";
-  color: #a0aec0; /* 薄いグレー（placeholder色） */
-  position: absolute;
-  left: 50%;
-  top: 50%;
-  transform: translate(-50%, -50%);
-  width: 100%;
-  pointer-events: none; /* クリックを邪魔しない */
-}
-
-/* ★追加：値が入ったら擬似要素を消す */
-.inputField[type="date"]:valid::before {
-  display: none;
+.dateBox strong {
+  font-size: 1rem;
+  color: #1a202c;
 }
 
 /* 右上の円形ボタン */
@@ -64,7 +48,7 @@
   color: white;
   border: none;
   cursor: pointer;
-  font-size: 14px;
+  font-size: 0.9rem;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -84,7 +68,7 @@
 
   .inputField {
     height: 50px; /* スマホでタップしやすいように少し高く */
-    font-size: 16px; /* 入力時に勝手にズームされるのを防ぐ */
+    font-size: 1rem; /* 入力時に勝手にズームされるのを防ぐ */
     padding: 0 16px;
     text-align-last: center;
   }

@@ -12,7 +12,11 @@ import { collection, addDoc, getDocs, updateDoc, doc, deleteDoc, query, where } 
 import { signInWithPopup, onAuthStateChanged, signOut, type User } from "firebase/auth"; 
 
 function App() {
-  const [date, setDate] = useState('')
+  // 今日の日付を"YYYY-MM-DD"形式で取得（固定）
+  const getToday = () =>
+  new Date().toISOString().slice(0, 10)
+  const [date] = useState(getToday())
+
   const [subject, setSubject] = useState('')
   const [duration, setDuration] = useState('')
   const [records, setRecords] = useState<StudyRecord[]>([])
@@ -69,7 +73,7 @@ function App() {
   };
 
   const addRecord = async () => {
-    if (!user || !date || !subject || !duration) return;
+    if (!user || !subject || !duration) return;
     try {
       const docRef = await addDoc(collection(db, "records"), {
         uid: user.uid,
@@ -175,7 +179,6 @@ function App() {
             date={date}
             subject={subject}
             duration={duration}
-            onDateChange={setDate}
             onSubjectChange={setSubject}
             onDurationChange={setDuration}
             onSubmit={addRecord}

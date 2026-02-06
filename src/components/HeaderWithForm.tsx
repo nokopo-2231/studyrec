@@ -7,7 +7,6 @@ type Props = {
   date: string
   subject: string
   duration: string
-  onDateChange: (v: string) => void
   onSubjectChange: (v: string) => void
   onDurationChange: (v: string) => void
   onSubmit: () => void
@@ -17,7 +16,6 @@ const HeaderWithForm = ({
     date,
     subject,
     duration,
-    onDateChange,
     onSubjectChange,
     onDurationChange,
     onSubmit,
@@ -47,10 +45,8 @@ const HeaderWithForm = ({
               date={date}
               subject={subject}
               duration={duration}
-              onDateChange={onDateChange}
               onSubjectChange={onSubjectChange}
               onDurationChange={onDurationChange}
-              onSubmit={handleSubmit}
             />
           </section>
         )}

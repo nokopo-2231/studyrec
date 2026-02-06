@@ -5,17 +5,14 @@ type Props = {
   date: string
   subject: string
   duration: string
-  onDateChange: (value: string) => void
   onSubjectChange: (value: string) => void
   onDurationChange: (value: string) => void
-  onSubmit: () => void
 }
 
 const StudyForm = ({
   date,
   subject,
   duration,
-  onDateChange,
   onSubjectChange,
   onDurationChange,
 }: Props) => {
@@ -30,13 +27,10 @@ const StudyForm = ({
 
       {/* 下部：入力欄のエリア */}
       <div className={styles.formRow}>
-        <input
-          type="date"
-          className={styles.inputField}
-          value={date}
-          onChange={(e) => onDateChange(e.target.value)}
-          required
-        />
+
+        <div className={`${styles.inputField} ${styles.dateBox}`}>
+          Today : {date}
+        </div>
 
         <select
           className={styles.inputField}
