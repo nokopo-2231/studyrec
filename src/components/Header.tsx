@@ -1,7 +1,6 @@
 import logo from "../assets/images/Logo.png";
 import button from "../assets/images/button.png";
 import styles from "./Header.module.css";
-import formStyles from './StudyForm.module.css'
 
 type Props = {
   open: boolean
@@ -9,7 +8,7 @@ type Props = {
   onSubmit: () => void
 }
 
-const Header = ({ open, onToggle, onSubmit }: Props) => {
+const Header = ({ open, onToggle }: Props) => {
   return (
     // 外枠の header タグは App.tsx にあるので、ここでは inner だけ指定
     <div className={styles.container}>
