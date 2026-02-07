@@ -20,21 +20,12 @@ const Header = ({ open, onToggle, onSubmit }: Props) => {
             </a>
           </h1>
 
-          {open ? (
           <button
-            className={formStyles.submitButton}
-            onClick={onSubmit}
-          >
-            追加
-          </button>
-        ) : (
-          <button
-            className={styles.toggleBtn}
+            className={`${styles.toggleBtn} ${open ? styles.open : ''}`}
             onClick={onToggle}
           >
             <img src={button} alt="plus" />
           </button>
-        )}
       </div>
     </div>
   )

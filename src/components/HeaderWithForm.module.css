@@ -21,6 +21,7 @@
 .formSection {
   width: 100%;
   padding-bottom: 20px;
+  margin-bottom: 20px;
   animation: fadeIn 0.3s ease-out; /* ふわっと表示 */
 }
 
