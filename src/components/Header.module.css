@@ -4,10 +4,12 @@
   justify-content: space-between;
   align-items: center;
   width: 100%;
+  padding: 16px 20px;
+  /* border: solid; */
 }
 
 .logo img {
-  height: 50px;
+  height: 40px;
   display: block;
 }
 
@@ -26,11 +28,11 @@
 /* ===== PC画面 ===== */
 @media (min-width: 768px) {
   .inner {
-    padding: 16px 24px;
+    padding: 16px auto;
     /* border:solid */
   }
 
   .logo img {
-    height: 70px;
+    height: 60px;
   }
 }
