@@ -21,7 +21,6 @@
 .formSection {
   width: 100%;
   padding-bottom: 20px;
-  margin-bottom: 20px;
   animation: fadeIn 0.3s ease-out; /* ふわっと表示 */
 }
 
@@ -30,7 +29,33 @@
   to { opacity: 1; transform: translateY(0); }
 }
 
-/* --- 既存のコードの下に追記 --- */
+.logoutArea {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 25px;
+}
+
+.logoutButton {
+  display: flex;
+  align-items: center;
+  color: #fff;
+  background: #b4b4b4;
+  border: none;
+  border-radius: 20px;
+  border: 0.7px solid #737373;
+  padding: 5px 10px 5px 28px;
+  font-size: 0.75rem;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.logoutButton:hover {
+  opacity: 0.7;
+}
+
+.logoutIcon {
+  height: 36px;
+}
 
 @media (max-width: 768px) {
   .inner {

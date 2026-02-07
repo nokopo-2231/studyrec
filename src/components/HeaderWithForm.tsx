@@ -2,6 +2,7 @@ import { useState } from 'react'
 import Header from './Header'
 import StudyForm from './StudyForm'
 import styles from './HeaderWithForm.module.css'
+import logoutIcon from '../assets/images/Logout.png'
 
 type Props = {
   date: string
@@ -10,6 +11,7 @@ type Props = {
   onSubjectChange: (v: string) => void
   onDurationChange: (v: string) => void
   onSubmit: () => void
+  onLogout: () => void
 }
 
 const HeaderWithForm = ({
@@ -19,6 +21,7 @@ const HeaderWithForm = ({
     onSubjectChange,
     onDurationChange,
     onSubmit,
+    onLogout,
 }: Props) => {
   
   const [open, setOpen] = useState(false)
@@ -48,6 +51,21 @@ const HeaderWithForm = ({
               onSubjectChange={onSubjectChange}
               onDurationChange={onDurationChange}
             />
+
+            <div className={styles.logoutArea}>
+              <button
+                type="button"
+                onClick={onLogout}
+                className={styles.logoutButton}
+              >
+                <span>LOG OUT</span>
+                <img
+                  src={logoutIcon}
+                  alt=""
+                  className={styles.logoutIcon}
+                />
+              </button>
+            </div>
           </section>
         )}
       </div>

@@ -171,10 +171,6 @@ function App() {
   return (
     <div className="app">
       <header>
-        <div style={{ textAlign: 'right', padding: '10px', fontSize: '0.8rem' }}>
-          <span>{user.email} でログイン中</span>
-          <button onClick={logout} style={{ marginLeft: '10px' }}>ログアウト</button>
-        </div>
         <HeaderWithForm 
             date={date}
             subject={subject}
@@ -182,6 +178,7 @@ function App() {
             onSubjectChange={setSubject}
             onDurationChange={setDuration}
             onSubmit={addRecord}
+            onLogout={logout}
           />
       </header>
 
