@@ -186,7 +186,7 @@ function App() {
       </header>
 
       <main>
-        <h2 className="sectionTitle">MONTHLY</h2>
+        <h2 className="sectionTitle1">MONTHLY</h2>
         {/* 月間カレンダーには全データを渡す */}
         <div className="card">
           <Monthly 
@@ -202,7 +202,7 @@ function App() {
           <BarChart records={monthlyRecords} />
         </div>
         
-        <h2 className="sectionTitle">RECORD (今週の記録)</h2>
+        <h2 className="sectionTitle2">RECORD (今週の記録)</h2>
         {/* 下のリストには今週分だけを渡す */}
         <StudyList 
           records={weeklyRecords} 
