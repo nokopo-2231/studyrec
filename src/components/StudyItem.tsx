@@ -13,6 +13,18 @@ const StudyItem = ({ record, onDelete, onUpdate }: Props) => {
   const [subject, setSubject] = useState(record.subject);
   const [duration, setDuration] = useState(String(record.duration));
 
+  const formatDuration = (totalSeconds: number) => {
+  const h = Math.floor(totalSeconds / 3600);
+  const m = Math.floor((totalSeconds % 3600) / 60);
+  const s = totalSeconds % 60;
+
+  const hDisplay = h > 0 ? `${h}時間` : "";
+  const mDisplay = m > 0 ? `${m}分` : (h > 0 ? "0分" : ""); // 時間がある時は0分も表示
+  const sDisplay = `${s}秒`;
+
+  return `${hDisplay}${mDisplay}${sDisplay}`;
+};
+
   return (
     <div className={styles.itemRow}>
       {/* 左側：日付の代わりに「科目」を表示 */}
@@ -33,7 +45,9 @@ const StudyItem = ({ record, onDelete, onUpdate }: Props) => {
               onChange={(e) => setDuration(e.target.value)} />
           </div>
         ) : (
-          <span className={styles.durationText}>{record.duration}min</span>
+          <span className={styles.durationText}>
+            {formatDuration(record.duration)}
+          </span>
         )}
       </div>
 

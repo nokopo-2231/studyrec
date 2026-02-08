@@ -37,6 +37,23 @@ const StudyList = ({ records, onDelete, onUpdate }: Props) => {
         // その日のレコードを探す
         const dayRecords = records.filter((r) => r.date === dateStr);
 
+        // 教科ごとに集計
+        const aggregatedRecords = dayRecords.reduce((acc: StudyRecord[], current) => {
+          const existingIndex = acc.findIndex((item) => item.subject === current.subject);
+          
+          if (existingIndex > -1) {
+            // すでに同じ教科がある場合、新しいオブジェクトを作って時間を足す
+            acc[existingIndex] = {
+              ...acc[existingIndex],
+             duration: acc[existingIndex].duration + current.duration
+            };
+          } else {
+            // 新しい教科の場合、コピーを追加
+            acc.push({ ...current });
+          }
+          return acc;
+        }, []);
+
         return (
           <li key={dateStr} className={styles.dayRow}>
             {/* 左側：日付（1つだけ表示） */}
@@ -44,8 +61,8 @@ const StudyList = ({ records, onDelete, onUpdate }: Props) => {
 
             {/* 右側：その日の勉強内容リスト */}
             <div className={styles.recordsContainer}>
-              {dayRecords.length > 0 ? (
-                dayRecords.map((record) => (
+              {aggregatedRecords.length > 0 ? (
+                aggregatedRecords.map((record) => (
                   <div key={record.id} className={styles.itemWrapper}>
                     <StudyItem
                       record={record}
