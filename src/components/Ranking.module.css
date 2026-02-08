@@ -28,12 +28,10 @@
 }
 
 .rankItem {
-    /* display: flex;
-    justify-content: center; */
     display: grid;
     grid-template-columns: 1fr 1fr;
     align-items: center;
-    width: 75%;
+    width: 85%;
     max-width: 400px;
     padding: 12px 0;
     background: white;
@@ -75,7 +73,6 @@
 }
 
 .durationValue {
-    /* flex: 1; */
     text-align: left;
     display: flex;
     align-items: baseline; /* 数字と単位の下端を揃える */
