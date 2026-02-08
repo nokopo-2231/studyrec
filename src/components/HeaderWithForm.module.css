@@ -2,7 +2,6 @@
 .container {
   width: 100%;
   background-color: #fff; 
-  border-bottom: 1px solid #ddd;
 }
 
 .inner,
@@ -14,7 +13,6 @@
 .inner {
   display: flex;
   flex-direction: column; /* 上下に並べる */
-  gap: 10px; /* ロゴ行とフォーム行の間の隙間 */
   padding: 12px 30px;
 }
 
@@ -42,8 +40,8 @@
   background: #b4b4b4;
   border: none;
   border-radius: 20px;
-  border: 0.7px solid #737373;
-  padding: 5px 10px 5px 28px;
+  /* border: 0.7px solid #737373; */
+  padding: 1px 10px 1px 28px;
   font-size: 0.75rem;
   font-weight: bold;
   cursor: pointer;
