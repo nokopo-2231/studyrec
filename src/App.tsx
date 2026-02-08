@@ -72,36 +72,56 @@ function App() {
     }
   };
 
-  const addRecord = async () => {
-    if (!user || !subject || !duration) return;
+  // 引数に timeFromTimer を追加し、タイマーからの文字列を受け取れるようにします
+  const addRecord = async (timeFromTimer?: string) => {
+    // タイマーからの値があればそれを使用、なければステートを使用
+    const finalDurationStr = typeof timeFromTimer === 'string' ? timeFromTimer : duration;
+
+    if (!user || !subject || !finalDurationStr || finalDurationStr === "00 : 00") {
+      alert("科目を選択してタイマーを計測してください");
+      return;
+    }
+
+    // "01 : 15" のような文字列を「分」に変換するロジック
+    const timeParts = finalDurationStr.split(':').map(s => parseInt(s.trim()));
+    let totalMinutes = 0;
+
+    if (timeParts.length === 2) {
+      // "分 : 秒" の形式の場合
+      const [mins, secs] = timeParts;
+      totalMinutes = mins + (secs > 0 ? 1 : 0); // 1秒でもあれば切り上げ
+    } else {
+      // 念のため、数値のみが入ってきた場合のフォールバック
+      totalMinutes = Number(finalDurationStr);
+    }
+
     try {
       const docRef = await addDoc(collection(db, "records"), {
         uid: user.uid,
         date,
         subject,
-        duration: Number(duration),
+        duration: totalMinutes,
         createdAt: new Date(), 
       });
 
       if (analytics) {
-        logEvent(analytics, 'add_study_record', { subject, duration: Number(duration) });
+        logEvent(analytics, 'add_study_record', { subject, duration: totalMinutes });
       }
 
       const newRecord: StudyRecord = {
         id: docRef.id,
         date,
         subject,
-        duration: Number(duration),
+        duration: totalMinutes,
       };
 
-      // recordsには全データを追加（Monthly表示用）
       setRecords((prev) => [...prev, newRecord]);
-
       setSubject('');
-      setDuration('');
+      setDuration(''); 
       alert("自分専用のクラウドに保存しました！");
     } catch (e) {
       console.error("保存失敗:", e);
+      alert("保存に失敗しました。");
     }
   };
 
@@ -174,9 +194,7 @@ function App() {
         <HeaderWithForm 
             date={date}
             subject={subject}
-            duration={duration}
             onSubjectChange={setSubject}
-            onDurationChange={setDuration}
             onSubmit={addRecord}
             onLogout={logout}
           />

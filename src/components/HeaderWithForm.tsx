@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Header from './Header'
 import StudyForm from './StudyForm'
 import styles from './HeaderWithForm.module.css'
@@ -7,28 +7,45 @@ import logoutIcon from '../assets/images/Logout.png'
 type Props = {
   date: string
   subject: string
-  duration: string
   onSubjectChange: (v: string) => void
-  onDurationChange: (v: string) => void
-  onSubmit: () => void
+  onSubmit: (duration: string) => void // 保存時に時間を渡すため string 型を受け取るように変更
   onLogout: () => void
 }
 
 const HeaderWithForm = ({
     date,
     subject,
-    duration,
     onSubjectChange,
-    onDurationChange,
     onSubmit,
     onLogout,
 }: Props) => {
-  
-  const [open, setOpen] = useState(false)
 
-  const handleSubmit = () => {
-    onSubmit()
-    setOpen(false) // フォームを閉じる
+  const [open, setOpen] = useState(false)
+  const [seconds, setSeconds] = useState(0)
+  const [isActive, setIsActive] = useState(false)
+
+  //タイマーのカウントアップ
+  useEffect(() => {
+    let interval: ReturnType<typeof setInterval> | null = null
+    if (isActive) {
+      interval = setInterval(() => setSeconds(s => s + 1), 1000)
+    }
+    return () => { if (interval) clearInterval(interval) }
+  }, [isActive])
+
+  //秒を 00:00 に整形
+  const formatTime = (s: number) => {
+    const m = Math.floor(s / 60).toString().padStart(2, '0')
+    const sec = (s % 60).toString().padStart(2, '0')
+    return `${m} : ${sec}`
+  }
+
+  //停止して保存する処理
+  const handleSave = () => {
+    onSubmit(formatTime(seconds)) // 親のRecord追加関数に渡す
+    setIsActive(false)
+    setSeconds(0)
+    setOpen(false)
   }
 
   return (
@@ -38,7 +55,7 @@ const HeaderWithForm = ({
         <Header
           open={open}
           onToggle={() => setOpen(!open)}
-          onSubmit={handleSubmit}
+          onSubmit={handleSave}
         />
 
         {/* 下段のフォーム行 */}
@@ -47,9 +64,11 @@ const HeaderWithForm = ({
             <StudyForm
               date={date}
               subject={subject}
-              duration={duration}
+              duration={formatTime(seconds)}
               onSubjectChange={onSubjectChange}
-              onDurationChange={onDurationChange}
+              isTimerRunning={isActive}
+              onTimerToggle={() => setIsActive(!isActive)}
+              onSave={handleSave}
             />
 
             <div className={styles.logoutArea}>

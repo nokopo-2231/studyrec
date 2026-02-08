@@ -1,3 +1,4 @@
+import Timer from './Timer'
 import { SUBJECTS } from '../types/subject'
 import styles from './StudyForm.module.css'
 
@@ -5,17 +6,22 @@ type Props = {
   date: string
   subject: string
   duration: string
+  isTimerRunning: boolean
   onSubjectChange: (value: string) => void
-  onDurationChange: (value: string) => void
+  onTimerToggle: () => void
+  onSave: () => void
 }
 
 const StudyForm = ({
   date,
   subject,
   duration,
+  isTimerRunning,
   onSubjectChange,
-  onDurationChange,
+  onTimerToggle,
+  onSave,
 }: Props) => {
+  
   return (
     <section>
       {/* 上部：タイトルとボタンのエリア */}
@@ -43,12 +49,11 @@ const StudyForm = ({
           ))}
         </select>
 
-        <input
-          type="number"
-          placeholder="分"
-          className={styles.inputField}
-          value={duration}
-          onChange={(e) => onDurationChange(e.target.value)}
+        <Timer 
+          duration={duration} 
+          isTimerRunning={isTimerRunning} 
+          onToggle={onTimerToggle}
+          onSave={onSave}
         />
       </div>
     </section>

@@ -1,0 +1,80 @@
+.timerContainer {
+  display: flex;
+  align-items: center;
+  background-color: #ffffff;
+  border: 1px solid #333; 
+  border-radius: 24px; 
+  padding: 8px 24px;
+  width: 100%;
+}
+
+/* 左・中・右の3つの枠を同じ幅（33.3%）にする */
+.leftArea, .centerArea, .rightArea {
+  flex: 1; 
+  display: flex;
+  align-items: center;
+}
+
+.leftArea {
+  justify-content: flex-start; /* 再生ボタンを左端に */
+  pointer-events: auto; /* クリック有効化 */
+}
+
+.centerArea {
+  justify-content: center; /* 数字をこのエリアの真ん中に（＝全体の真ん中） */
+  pointer-events: none; /* 中央の数字部分はクリック無効化 */
+}
+
+.rightArea {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  position: relative; /* z-indexを有効にするため */
+  z-index: 1;        /* 中央より確実に上に */
+  pointer-events: auto;
+}
+
+.playButton {
+  background-color: #5da097; /* 再生ボタンの青緑色 */
+  color: white;
+  border: none;
+  border-radius: 50%;
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: opacity 0.2s;
+}
+
+.playButton:hover {
+  opacity: 0.8;
+}
+
+.timerText {
+  font-size: 1rem;
+  color: #4a5568;
+  letter-spacing: 0.1em;
+  white-space: nowrap; /* 改行防止 */
+  pointer-events: none; /* クリック無効化 */
+}
+
+.saveButton {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  background-color: #e76f51;
+  border: 1px solid #e76f51;
+  border-radius: 15px;
+  padding: 10px 10px;
+  font-size: 0.7rem;
+  font-weight: bold;
+  color: #ffffff;
+  cursor: pointer;
+}
+
+.playButton:active {
+  transform: scale(0.9);
+}
