@@ -1,15 +1,22 @@
 // Timer.tsx
-import { Play, Pause, Check } from 'lucide-react' // アイコンライブラリを使用する場合
+import { Play, Pause } from 'lucide-react' // アイコンライブラリを使用する場合
 import styles from './Timer.module.css'
 
 type Props = {
-  duration: string
+  seconds: number 
   isTimerRunning: boolean
   onToggle: () => void
   onSave: () => void
 }
 
-const Timer = ({ duration, isTimerRunning, onToggle, onSave }: Props) => {
+const formatHMS = (totalSeconds: number) => {
+  const h = Math.floor(totalSeconds / 3600)
+  const m = Math.floor((totalSeconds % 3600) / 60)
+  const s = totalSeconds % 60
+
+  return `${String(h).padStart(2, '0')} : ${String(m).padStart(2, '0')} : ${String(s).padStart(2, '0')}`
+}
+const Timer = ({ seconds, isTimerRunning, onToggle, onSave }: Props) => {
   return (
     <div className={styles.timerContainer}>
       {/* 左エリア */}
@@ -25,12 +32,12 @@ const Timer = ({ duration, isTimerRunning, onToggle, onSave }: Props) => {
 
       {/* 中央エリア：中身を中央寄せにする */}
       <div className={styles.centerArea}>
-        <span className={styles.timerText}>{duration || '00 : 00'}</span>
+        <span className={styles.timerText}>{formatHMS(seconds)}</span>
       </div>
 
       {/* 右エリア：ボタンは条件付きで表示 */}
       <div className={styles.rightArea}>
-        {!isTimerRunning && duration !== '00 : 00' && (
+        {!isTimerRunning && seconds !== 0 && (
           <button type="button" className={styles.saveButton} onClick={onSave}>
             {/* <Check size={16} /> */}
             <span>記録</span>

@@ -9,11 +9,11 @@ type Props = {
 }
 
 const StudyList = ({ records, onDelete, onUpdate }: Props) => {
-  // 今週の月曜日から日曜日までの日付文字列(YYYY-MM-DD)の配列を作る
-  const getWeekDates = () => {
+  // 1. 今週の月曜日から日曜日までの日付文字列（YYYY-MM-DD）の配列を生成する
+  const getWeekDatesArray = () => {
     const now = new Date();
     const day = now.getDay();
-    // 日曜日(0)を週の最後にするための調整
+    // 月曜日を週の始まりとする計算
     const diffToMon = day === 0 ? -6 : 1 - day;
     const monday = new Date(now);
     monday.setDate(now.getDate() + diffToMon);
@@ -21,7 +21,6 @@ const StudyList = ({ records, onDelete, onUpdate }: Props) => {
     return [...Array(7)].map((_, i) => {
       const d = new Date(monday);
       d.setDate(monday.getDate() + i);
-      // ローカルの日付を YYYY-MM-DD 形式で取得
       const y = d.getFullYear();
       const m = String(d.getMonth() + 1).padStart(2, '0');
       const day = String(d.getDate()).padStart(2, '0');
@@ -29,26 +28,26 @@ const StudyList = ({ records, onDelete, onUpdate }: Props) => {
     });
   };
 
-  const weekDates = getWeekDates();
+  const weekDates = getWeekDatesArray();
 
   return (
     <ul className={styles.list}>
       {weekDates.map((dateStr) => {
-        // その日のレコードを探す
+        // その日のレコードだけを抽出
         const dayRecords = records.filter((r) => r.date === dateStr);
 
-        // 教科ごとに集計
+        // 教科ごとに秒数を集計
         const aggregatedRecords = dayRecords.reduce((acc: StudyRecord[], current) => {
           const existingIndex = acc.findIndex((item) => item.subject === current.subject);
           
           if (existingIndex > -1) {
-            // すでに同じ教科がある場合、新しいオブジェクトを作って時間を足す
             acc[existingIndex] = {
               ...acc[existingIndex],
-             duration: acc[existingIndex].duration + current.duration
+              // 秒数を単純加算
+              duration: acc[existingIndex].duration + current.duration
             };
           } else {
-            // 新しい教科の場合、コピーを追加
+            // 参照を切るためにスプレッドでコピー
             acc.push({ ...current });
           }
           return acc;
@@ -56,14 +55,14 @@ const StudyList = ({ records, onDelete, onUpdate }: Props) => {
 
         return (
           <li key={dateStr} className={styles.dayRow}>
-            {/* 左側：日付（1つだけ表示） */}
+            {/* 左側：日付表示 */}
             <div className={styles.dateSide}>{dateStr}</div>
 
-            {/* 右側：その日の勉強内容リスト */}
+            {/* 右側：その日の学習記録リスト */}
             <div className={styles.recordsContainer}>
               {aggregatedRecords.length > 0 ? (
                 aggregatedRecords.map((record) => (
-                  <div key={record.id} className={styles.itemWrapper}>
+                  <div key={`${dateStr}-${record.subject}`} className={styles.itemWrapper}>
                     <StudyItem
                       record={record}
                       onDelete={onDelete}

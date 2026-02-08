@@ -8,7 +8,7 @@ type Props = {
   date: string
   subject: string
   onSubjectChange: (v: string) => void
-  onSubmit: (duration: string) => void // 保存時に時間を渡すため string 型を受け取るように変更
+  onSubmit: (timerSeconds: number) => void 
   onLogout: () => void
 }
 
@@ -33,16 +33,18 @@ const HeaderWithForm = ({
     return () => { if (interval) clearInterval(interval) }
   }, [isActive])
 
-  //秒を 00:00 に整形
-  const formatTime = (s: number) => {
-    const m = Math.floor(s / 60).toString().padStart(2, '0')
-    const sec = (s % 60).toString().padStart(2, '0')
-    return `${m} : ${sec}`
-  }
+  // 【修正】秒を 00 : 00 : 00 に整形
+  // const formatTime = (s: number) => {
+  //   const h = Math.floor(s / 3600).toString().padStart(2, '0')
+  //   const m = Math.floor((s % 3600) / 60).toString().padStart(2, '0')
+  //   const sec = (s % 60).toString().padStart(2, '0')
+  //   return `${h} : ${m} : ${sec}`
+  // }
 
   //停止して保存する処理
   const handleSave = () => {
-    onSubmit(formatTime(seconds)) // 親のRecord追加関数に渡す
+    // seconds (数値) をそのまま App.tsx の addRecord へ渡す
+    onSubmit(seconds) 
     setIsActive(false)
     setSeconds(0)
     setOpen(false)
@@ -51,20 +53,19 @@ const HeaderWithForm = ({
   return (
     <div className={styles.container}>
       <div className={styles.inner}>
-        {/* ロゴと追加ボタンの行 */}
         <Header
           open={open}
           onToggle={() => setOpen(!open)}
           onSubmit={handleSave}
         />
 
-        {/* 下段のフォーム行 */}
         {open && (
           <section className={styles.formSection}>
             <StudyForm
               date={date}
               subject={subject}
-              duration={formatTime(seconds)}
+              // formatTime で 00 : 00 : 00 になった文字列を渡す
+              seconds={seconds}
               onSubjectChange={onSubjectChange}
               isTimerRunning={isActive}
               onTimerToggle={() => setIsActive(!isActive)}

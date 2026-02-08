@@ -25,41 +25,37 @@ const Monthly = ({ records, viewDate, onDateChange }: Props) => {
   const daysInMonth = new Date(year, month + 1, 0).getDate()
   const days = Array.from({ length: daysInMonth }, (_, i) => i + 1)
 
-
   // 表示中の月のデータだけを抽出
   const filteredRecords = records.filter(r => {
-  const normalized = normalizeDate(r.date)
-  const d = new Date(normalized + 'T00:00:00')
+    const normalized = normalizeDate(r.date)
+    const d = new Date(normalized + 'T00:00:00')
     return d.getFullYear() === year && d.getMonth() === month
   })
 
-//   console.log(
-//   filteredRecords.map(r => normalizeDate(r.date))
-// )
+  // --- 【修正点】計算ロジックを秒ベースに変更 ---
 
-  // 合計時間の計算
-  const totalMinutes = filteredRecords.reduce((sum, r) => sum + r.duration, 0)
-  const totalHours = Math.floor(totalMinutes / 60)
-  const remainingMinutes = totalMinutes % 60
+  // 合計時間の計算（durationは「秒」）
+  const totalSeconds = filteredRecords.reduce((sum, r) => sum + r.duration, 0)
+  const totalHours = Math.floor(totalSeconds / 3600)
+  const remainingMinutes = Math.floor((totalSeconds % 3600) / 60)
   
   // 勉強した日数の計算
   const studiedDaysCount = new Set(
     filteredRecords.map(r => normalizeDate(r.date))
   ).size
 
-  // 平均の計算
-  const avgMinutesTotal =
-  studiedDaysCount > 0
-    ? Math.floor(totalMinutes / studiedDaysCount)
-    : 0
+  // 平均の計算（秒で計算してから変換）
+  const avgSecondsTotal =
+    studiedDaysCount > 0
+      ? Math.floor(totalSeconds / studiedDaysCount)
+      : 0
 
-  const avgHours = Math.floor(avgMinutesTotal / 60)
-  const avgMinutes = avgMinutesTotal % 60
+  const avgHours = Math.floor(avgSecondsTotal / 3600)
+  const avgMinutes = Math.floor((avgSecondsTotal % 3600) / 60)
 
   return (
     <section className={styles.monthly}>
       <div className={styles.container}>
-       
         <div className={styles.header}>
           <span className={styles.arrow} onClick={() => changeMonth(-1)} style={{ cursor: 'pointer' }}>‹</span>
           <h3 className={styles.month}>{year}年 {month + 1}月</h3>
@@ -68,11 +64,10 @@ const Monthly = ({ records, viewDate, onDateChange }: Props) => {
         
         <div className={styles.calendar}>
           {Array.from({ length: firstDayOfMonth }).map((_, i) => (
-          <div key={`empty-${i}`} />
+            <div key={`empty-${i}`} />
           ))}
 
           {days.map(day => {
-            // カレンダー上の各日付が勉強済みかチェック
             const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`
             const isStudied = filteredRecords.some(
               r => normalizeDate(r.date) === dateStr
@@ -80,10 +75,10 @@ const Monthly = ({ records, viewDate, onDateChange }: Props) => {
 
             return (
               <div
-              key={day}
-              className={isStudied ? styles.activeDay : styles.day}
+                key={day}
+                className={isStudied ? styles.activeDay : styles.day}
               >
-              {day}
+                {day}
               </div>
             )
           })}

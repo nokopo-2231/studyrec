@@ -5,7 +5,7 @@ import styles from './StudyForm.module.css'
 type Props = {
   date: string
   subject: string
-  duration: string
+  seconds: number // ← duration (string) から seconds (number) に変更
   isTimerRunning: boolean
   onSubjectChange: (value: string) => void
   onTimerToggle: () => void
@@ -15,7 +15,7 @@ type Props = {
 const StudyForm = ({
   date,
   subject,
-  duration,
+  seconds, // ← 受け取る名前を変更
   isTimerRunning,
   onSubjectChange,
   onTimerToggle,
@@ -50,7 +50,7 @@ const StudyForm = ({
         </select>
 
         <Timer 
-          duration={duration} 
+          seconds={seconds}
           isTimerRunning={isTimerRunning} 
           onToggle={onTimerToggle}
           onSave={onSave}

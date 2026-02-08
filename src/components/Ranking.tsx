@@ -6,7 +6,7 @@ type Props = {
 }
 
 const Ranking = ({ records }: Props) => {
-  // 教科ごとに時間を合計する
+  // 教科ごとに時間を合計する（秒単位で合算される）
   const rankingMap = records.reduce((acc, cur) => {
     acc[cur.subject] = (acc[cur.subject] || 0) + cur.duration
     return acc
@@ -26,9 +26,9 @@ const Ranking = ({ records }: Props) => {
 
       <div className={styles.list}>
         {sortedRanking.map((item, index) => {
-          // 時間と分を計算
-          const hours = Math.floor(item.duration / 60)
-          const minutes = item.duration % 60
+          // 【修正】秒から時間と分を計算（秒は切り捨て）
+          const hours = Math.floor(item.duration / 3600)
+          const minutes = Math.floor((item.duration % 3600) / 60)
 
           return (
             <div 
@@ -37,16 +37,14 @@ const Ranking = ({ records }: Props) => {
             >
               <span className={styles.subject}>{item.subject.toUpperCase()}</span>
               
-              {/* 統計部分と同じデザインを適用 */}
               <div className={styles.durationValue}>
+                {/* 時間が 0 の場合でも 0時間 と出すか、隠すかはお好みですが、ここでは表示します */}
                 <span className={styles.bigNum}>{hours}</span>
                 <span className={styles.unit}>時間</span>
-                {minutes > 0 && (
-                  <>
-                    <span className={styles.bigNum}>{minutes}</span>
-                    <span className={styles.unit}>分</span>
-                  </>
-                )}
+                
+                {/* 分は 0 の場合でも 0分 と出すか、条件付きにするか選べます */}
+                <span className={styles.bigNum}>{minutes}</span>
+                <span className={styles.unit}>分</span>
               </div>
             </div>
           )

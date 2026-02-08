@@ -11,39 +11,64 @@ type Props = {
 const StudyItem = ({ record, onDelete, onUpdate }: Props) => {
   const [isEditing, setIsEditing] = useState(false);
   const [subject, setSubject] = useState(record.subject);
-  const [duration, setDuration] = useState(String(record.duration));
 
+  // 1. 【修正】秒(number)を "HH : MM : SS" 形式にする
   const formatDuration = (totalSeconds: number) => {
-  const h = Math.floor(totalSeconds / 3600);
-  const m = Math.floor((totalSeconds % 3600) / 60);
-  const s = totalSeconds % 60;
+    const h = Math.floor(totalSeconds / 3600);
+    const m = Math.floor((totalSeconds % 3600) / 60);
+    const s = Math.floor(totalSeconds % 60);
+    return `${String(h).padStart(2, '0')} : ${String(m).padStart(2, '0')} : ${String(s).padStart(2, '0')}`;
+  };
 
-  const hDisplay = h > 0 ? `${h}時間` : "";
-  const mDisplay = m > 0 ? `${m}分` : (h > 0 ? "0分" : ""); // 時間がある時は0分も表示
-  const sDisplay = `${s}秒`;
+  // ステートを文字列（"00 : 00 : 00"形式）で管理する
+  const [durationStr, setDurationStr] = useState(formatDuration(record.duration));
 
-  return `${hDisplay}${mDisplay}${sDisplay}`;
-};
+  // 2. 【修正】保存時に "HH : MM : SS" を数値（秒）に変換する関数
+  const parseToSeconds = (str: string) => {
+    // 全角スペースやコロンが含まれても動くように trim し、数値化
+    const parts = str.split(':').map(s => parseInt(s.trim()) || 0);
+    
+    if (parts.length === 3) {
+      const [h, m, s] = parts;
+      return (h * 3600) + (m * 60) + s;
+    } 
+    // もし "MM : SS" 形式で入力された場合のフォールバック
+    else if (parts.length === 2) {
+      const [m, s] = parts;
+      return (m * 60) + s;
+    }
+    return Number(str) || 0;
+  };
+
+  const handleSave = () => {
+    const numericSeconds = parseToSeconds(durationStr);
+    onUpdate({ ...record, subject, duration: numericSeconds });
+    setIsEditing(false);
+  };
 
   return (
     <div className={styles.itemRow}>
-      {/* 左側：日付の代わりに「科目」を表示 */}
-      <div className={styles.subjectSide}>{record.subject}</div>
+      <div className={styles.subjectSide}>
+        {isEditing ? (
+          <input 
+            className={styles.editInput}
+            value={subject} 
+            onChange={(e) => setSubject(e.target.value)} 
+          />
+        ) : (
+          record.subject
+        )}
+      </div>
 
-      {/* 中央：時間は「数値」のみ表示 */}
       <div className={styles.durationCenter}>
         {isEditing ? (
-          <div className={styles.editInputs}>
-            <input 
-              className={styles.editInput}
-              value={subject} 
-              onChange={(e) => setSubject(e.target.value)} />
-            <input 
-              className={styles.editInput}
-              type="number" 
-              value={duration} 
-              onChange={(e) => setDuration(e.target.value)} />
-          </div>
+          <input 
+            className={styles.editInput}
+            type="text"
+            value={durationStr} 
+            placeholder="00 : 00 : 00"
+            onChange={(e) => setDurationStr(e.target.value)} 
+          />
         ) : (
           <span className={styles.durationText}>
             {formatDuration(record.duration)}
@@ -51,16 +76,16 @@ const StudyItem = ({ record, onDelete, onUpdate }: Props) => {
         )}
       </div>
 
-      {/* 右側：ボタン */}
       <div className={styles.buttonSide}>
         {isEditing ? (
-          <button className={styles.saveBtn} onClick={() => {
-            onUpdate({ ...record, subject, duration: Number(duration) });
-            setIsEditing(false);
-          }}>保存</button>
+          <button className={styles.saveBtn} onClick={handleSave}>保存</button>
         ) : (
           <>
-            <button className={styles.editBtn} onClick={() => setIsEditing(true)}>編集</button>
+            <button className={styles.editBtn} onClick={() => {
+              setSubject(record.subject);
+              setDurationStr(formatDuration(record.duration));
+              setIsEditing(true);
+            }}>編集</button>
             <button className={styles.deleteBtn} onClick={() => onDelete(record.id)}>削除</button>
           </>
         )}
@@ -68,5 +93,4 @@ const StudyItem = ({ record, onDelete, onUpdate }: Props) => {
     </div>
   );
 };
-
-export default StudyItem
+export default StudyItem;

@@ -18,7 +18,7 @@ function App() {
   const [date] = useState(getToday())
 
   const [subject, setSubject] = useState('')
-  const [duration, setDuration] = useState('')
+  // const [duration, setDuration] = useState('')
   const [records, setRecords] = useState<StudyRecord[]>([])
   const [user, setUser] = useState<User | null>(null);
   // 表示中の月を親で管理する
@@ -73,58 +73,47 @@ function App() {
   };
 
   // 引数に timeFromTimer を追加し、タイマーからの文字列を受け取れるようにします
-  const addRecord = async (timeFromTimer?: string) => {
-    // タイマーからの値があればそれを使用、なければステートを使用
-    const finalDurationStr = typeof timeFromTimer === 'string' ? timeFromTimer : duration;
+  const addRecord = async (secondsFromTimer: number) => {
+  const finalSeconds = secondsFromTimer
 
-    if (!user || !subject || !finalDurationStr || finalDurationStr === "00 : 00") {
-      alert("科目を選択してタイマーを計測してください");
-      return;
-    }
+  if (!user || !subject || finalSeconds === 0) {
+    alert("科目を選択してタイマーを計測してください")
+    return
+  }
 
-    // "01 : 15" のような文字列を「分」に変換するロジック
-    const timeParts = finalDurationStr.split(':').map(s => parseInt(s.trim()));
-    let totalMinutes = 0;
+  try {
+    const docRef = await addDoc(collection(db, "records"), {
+      uid: user.uid,
+      date,
+      subject,
+      duration: finalSeconds, // ← 秒で保存
+      createdAt: new Date(),
+    })
 
-    if (timeParts.length === 2) {
-      // "分 : 秒" の形式の場合
-      const [mins, secs] = timeParts;
-      totalMinutes = mins + (secs > 0 ? 1 : 0); // 1秒でもあれば切り上げ
-    } else {
-      // 念のため、数値のみが入ってきた場合のフォールバック
-      totalMinutes = Number(finalDurationStr);
-    }
-
-    try {
-      const docRef = await addDoc(collection(db, "records"), {
-        uid: user.uid,
-        date,
+    if (analytics) {
+      logEvent(analytics, 'add_study_record', {
         subject,
-        duration: totalMinutes,
-        createdAt: new Date(), 
-      });
-
-      if (analytics) {
-        logEvent(analytics, 'add_study_record', { subject, duration: totalMinutes });
-      }
-
-      const newRecord: StudyRecord = {
-        id: docRef.id,
-        date,
-        subject,
-        duration: totalMinutes,
-      };
-
-      setRecords((prev) => [...prev, newRecord]);
-      setSubject('');
-      setDuration(''); 
-      alert("自分専用のクラウドに保存しました！");
-    } catch (e) {
-      console.error("保存失敗:", e);
-      alert("保存に失敗しました。");
+        seconds: finalSeconds,
+      })
     }
-  };
 
+    const newRecord: StudyRecord = {
+      id: docRef.id,
+      date,
+      subject,
+      duration: finalSeconds,
+    }
+
+    setRecords(prev => [...prev, newRecord])
+    setSubject('')
+    alert("自分専用のクラウドに保存しました！")
+  } catch (e) {
+    console.error("保存失敗:", e)
+    alert("保存に失敗しました。")
+  }
+}
+
+//削除関数
   const deleteRecord = async (id: string) => {
     try {
       await deleteDoc(doc(db, "records", id));
@@ -134,13 +123,14 @@ function App() {
     }
   };
 
+  //更新関数
   const updateRecord = async (updated: StudyRecord) => {
     try {
       const recordRef = doc(db, "records", updated.id);
       await updateDoc(recordRef, {
         date: updated.date,
         subject: updated.subject,
-        duration: updated.duration
+        duration: updated.duration // 秒単位
       });
       setRecords(prev => prev.map(r => r.id === updated.id ? updated : r));
     } catch (e) {
