@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import Header from './Header'
 import StudyForm from './StudyForm'
 import styles from './HeaderWithForm.module.css'
@@ -23,23 +23,60 @@ const HeaderWithForm = ({
   const [open, setOpen] = useState(false)
   const [seconds, setSeconds] = useState(0)
   const [isActive, setIsActive] = useState(false)
+  // 停止した時点までの経過秒数を保持する
+  const [accumulatedTime, setAccumulatedTime] = useState(0)
 
-  //タイマーのカウントアップ
+  // Wake Lockの状態を保持する変数
+  const wakeLockRef = useRef<any>(null)
+
+  // 画面スリープ防止をリクエストする関数
+  const requestWakeLock = async () => {
+    if ('wakeLock' in navigator) {
+      try {
+        wakeLockRef.current = await (navigator as any).wakeLock.request('screen');
+        console.log('画面常時点灯：有効');
+      } catch (err) {
+        console.error('Wake Lock失敗:', err);
+      }
+    }
+  };
+
+  // スリープ防止を解除する関数
+  const releaseWakeLock = async () => {
+    if (wakeLockRef.current !== null) {
+      await wakeLockRef.current.release();
+      wakeLockRef.current = null;
+      console.log('画面常時点灯：解除');
+    }
+  };
+
+  // タイマーのカウントアップ & スリープ制御
   useEffect(() => {
     let interval: ReturnType<typeof setInterval> | null = null
+    
     if (isActive) {
-      interval = setInterval(() => setSeconds(s => s + 1), 1000)
+      // タイマー開始時にスリープ防止
+      requestWakeLock();
+      
+      // 時刻差分方式で計算（スリープ対策）
+      const startTime = Date.now() - accumulatedTime * 1000;
+      interval = setInterval(() => {
+        // 常に「開始時刻との差」を表示するので、スリープしてもズレない
+        setSeconds(Math.floor((Date.now() - startTime) / 1000));
+      }, 1000);
+      
+    } else {
+      // 停止時に合計時間を保存し、スリープ防止を解除
+      setAccumulatedTime(seconds);
+      releaseWakeLock();
     }
-    return () => { if (interval) clearInterval(interval) }
-  }, [isActive])
-
-  // 【修正】秒を 00 : 00 : 00 に整形
-  // const formatTime = (s: number) => {
-  //   const h = Math.floor(s / 3600).toString().padStart(2, '0')
-  //   const m = Math.floor((s % 3600) / 60).toString().padStart(2, '0')
-  //   const sec = (s % 60).toString().padStart(2, '0')
-  //   return `${h} : ${m} : ${sec}`
-  // }
+    
+    return () => {
+      if (interval) clearInterval(interval);
+      // コンポーネントが消えるときも解除
+      releaseWakeLock();
+    };
+  }, [isActive]);
 
   //停止して保存する処理
   const handleSave = () => {
@@ -47,7 +84,9 @@ const HeaderWithForm = ({
     onSubmit(seconds) 
     setIsActive(false)
     setSeconds(0)
+    setAccumulatedTime(0) // リセット
     setOpen(false)
+    releaseWakeLock(); // 保存時も確実に解除
   }
 
   return (
