@@ -101,3 +101,15 @@
   height: 40px;
   background-color: #ddd;
 }
+
+/* --- 曜日ヘッダーのスタイルを追加 --- */
+.weekday {
+  font-size: 14px;
+  font-weight: 600;
+  color: #797c7b; 
+  padding-bottom: 8px;
+}
+
+/* 日曜日を赤、土曜日を青にするアクセント（任意） */
+.weekday:nth-child(1) { color: #e76f51; } /* 日 */
+.weekday:nth-child(7) { color: #8a95c1; } /* 土 */

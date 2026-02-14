@@ -12,6 +12,8 @@ const normalizeDate = (dateStr: string) => {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
 }
 
+const WEEKDAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
+
 const Monthly = ({ records, viewDate, onDateChange }: Props) => {
   const year = viewDate.getFullYear()
   const month = viewDate.getMonth()
@@ -63,6 +65,14 @@ const Monthly = ({ records, viewDate, onDateChange }: Props) => {
         </div>
         
         <div className={styles.calendar}>
+          {/* --- 曜日ヘッダーの追加 --- */}
+          {WEEKDAYS.map((day) => (
+            <div key={day} className={styles.weekday}>
+              {day}
+            </div>
+          ))}
+
+          {/* 空白セルの描画 */}
           {Array.from({ length: firstDayOfMonth }).map((_, i) => (
             <div key={`empty-${i}`} />
           ))}
