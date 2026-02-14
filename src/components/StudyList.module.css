@@ -204,6 +204,11 @@
 .deleteBtn { background-color: #d89669; border: none; border: 1.5px solid #000; color: white; padding: 5px 15px; }
 
 
+.highlight {
+  border: 5px solid #ffd600; /* 目印をつける */
+  transition: background-color 0.5s;
+}
+
 @media (max-width: 768px) {
   /* 1. 外枠：パディングを最小限にして横幅を確保 */
   .dayRow {

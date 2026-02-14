@@ -77,16 +77,18 @@ const Monthly = ({ records, viewDate, onDateChange }: Props) => {
             <div key={`empty-${i}`} />
           ))}
 
+          {/* 日付ループ部分 */}
           {days.map(day => {
             const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`
-            const isStudied = filteredRecords.some(
-              r => normalizeDate(r.date) === dateStr
-            )
+            const isStudied = filteredRecords.some(r => normalizeDate(r.date) === dateStr)
 
             return (
               <div
                 key={day}
                 className={isStudied ? styles.activeDay : styles.day}
+                // ↓ ここをクリック可能にする
+                onClick={() => onDateChange(new Date(year, month, day))}
+                style={{ cursor: 'pointer' }}
               >
                 {day}
               </div>

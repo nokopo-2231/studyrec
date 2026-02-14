@@ -148,12 +148,12 @@ function App() {
 
   // StudyList（RECORDセクション）に表示する「今週分」のデータを抽出
   const weeklyRecords = records.filter((r) => {
-    const now = new Date();
-    const day = now.getDay();
+    const baseDate = new Date(currentDate);
+    const day = baseDate.getDay();
     // 月曜日を週の始まりとする計算
     const diffToMon = day === 0 ? -6 : 1 - day; 
-    const monday = new Date(now);
-    monday.setDate(now.getDate() + diffToMon);
+    const monday = new Date(baseDate);
+    monday.setDate(baseDate.getDate() + diffToMon);
     monday.setHours(0, 0, 0, 0);
 
     const sunday = new Date(monday);
@@ -163,6 +163,16 @@ function App() {
     const recordDate = new Date(r.date);
     return recordDate >= monday && recordDate <= sunday;
   });
+
+  const handleDateChange = (newDate: Date) => {
+  setCurrentDate(newDate); // 基準日を更新
+  
+  // RECORDセクションのタイトルまでスムーズにスクロール
+  const section = document.querySelector('.sectionTitle2');
+  if (section) {
+    section.scrollIntoView({ behavior: 'smooth' });
+  }
+};
 
   // --- 表示分岐 ---
 
@@ -197,7 +207,7 @@ function App() {
           <Monthly 
             records={records}
             viewDate={currentDate} // 状態を渡す
-            onDateChange={setCurrentDate} // 変更関数を渡す
+            onDateChange={handleDateChange} // 変更関数を渡す
           />
         </div>
         <div className="card">
@@ -211,6 +221,7 @@ function App() {
         {/* 下のリストには今週分だけを渡す */}
         <StudyList 
           records={weeklyRecords} 
+          targetDate={currentDate} // カレンダーで選択されている日を渡す
           onDelete={deleteRecord} 
           onUpdate={updateRecord} 
         /> 
