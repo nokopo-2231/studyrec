@@ -1,6 +1,8 @@
+import { useState, useMemo } from 'react'
 import Chart from 'react-apexcharts'
 import type { ApexOptions } from 'apexcharts'
 import type { StudyRecord } from '../types/study'
+import styles from './BarChart.module.css'
 
 type Props = {
   records: StudyRecord[]
@@ -8,88 +10,119 @@ type Props = {
 
 const weekDays = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
 
-const getWeekDay = (date: string) =>
-  new Date(date).toLocaleDateString('en-US', { weekday: 'short' })
-
 export const BarChart = ({ records }: Props) => {
-  
-  const subjects = Array.from(new Set(records.map(r => r.subject)))
+  const [weekOffset, setWeekOffset] = useState(0)
 
-  const series = subjects.map(subject => ({
-    name: subject,
-    data: weekDays.map(day => {
-      const totalSeconds = records
-        .filter(
-          r => r.subject === subject && getWeekDay(r.date) === day
-        )
-        .reduce((sum, r) => sum + r.duration, 0);
-      
-      // ApexChartsには「分」換算の数値（小数点あり）で渡すと、
-      // 軸の目盛りがきれいに「1.5時間」などの位置で計算されます
-      return Math.round((totalSeconds / 60) * 10) / 10;
-    }),
-  }))
+  // 1. 週の範囲を計算（依存：weekOffsetのみ）
+  const range = useMemo(() => {
+    const now = new Date()
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate())
+    const dayOfWeek = today.getDay()
+    const diffToMonday = (dayOfWeek === 0 ? -6 : 1 - dayOfWeek) + (weekOffset * 7)
+    
+    const start = new Date(today)
+    start.setDate(today.getDate() + diffToMonday)
+    const end = new Date(start)
+    end.setDate(start.getDate() + 6)
+    end.setHours(23, 59, 59, 999) // 1日の終わりまで含める
 
-  const options: ApexOptions = {
-    chart: {
-      type: 'bar',
-      stacked: true,
+    return { 
+      start, 
+      end, 
+      label: `${start.getMonth() + 1}/${start.getDate()} - ${end.getMonth() + 1}/${end.getDate()}` 
+    }
+  }, [weekOffset])
+
+  // 2. 最速の集計ロジック
+  const series = useMemo(() => { // { series, subjectsFound } から series だけに変更
+    const agg: Record<string, Record<string, number>> = {}
+    const subjectsSet = new Set<string>()
+
+    for (const r of records) {
+      const d = new Date(r.date)
+      if (d >= range.start && d <= range.end) {
+        const dayName = d.toLocaleDateString('en-US', { weekday: 'short' })
+        subjectsSet.add(r.subject)
+
+        if (!agg[r.subject]) agg[r.subject] = {}
+        agg[r.subject][dayName] = (agg[r.subject][dayName] || 0) + r.duration
+      }
+    }
+
+    const subjectsArray = Array.from(subjectsSet)
+    
+    // ApexChartsの形式に整形して直接返す
+    return subjectsArray.map(subject => ({
+      name: subject,
+      data: weekDays.map(day => {
+        const seconds = agg[subject]?.[day] || 0
+        return Math.round((seconds / 60) * 10) / 10
+      })
+    }))
+  }, [records, range]) // 戻り値が series そのものになる
+
+  // 3. チャート設定（初回のみ生成）
+  const options: ApexOptions = useMemo(() => ({
+    chart: { 
+      type: 'bar', 
+      stacked: true, 
       toolbar: { show: false },
+      animations: { enabled: true, speed: 400 } 
     },
-    plotOptions: {
-      bar: {
-        borderRadius: 6,
-        columnWidth: '65%',
-      },
+    plotOptions: { 
+      bar: { borderRadius: 4, columnWidth: '60%', hideZeroBarsWhenStacked: true } 
     },
-    xaxis: {
-      categories: weekDays,
-      labels: { show: true }, 
-    },
+    xaxis: { categories: weekDays },
     yaxis: {
       labels: {
-        // value は series で計算した「分」の数値
-        formatter: (value: number) => {
-          const h = Math.floor(value / 60);
-          const m = Math.round(value % 60);
-          
-          if (h > 0) {
-            // 1時間以上の場合は "1時間 30分" のように表示
-            return `${h}時間${m > 0 ? ` ${m}分` : ''}`;
-          }
-          // 1時間未満は "45分" のように表示
-          return `${m}分`;
-        },
-        style: { 
-          fontSize: '12px',
-          colors: '#666' // ラベルの色を少し薄くして見やすく
-        },
+        formatter: (val) => {
+          const h = Math.floor(val / 60)
+          const m = Math.round(val % 60)
+          return h > 0 ? `${h}h${m > 0 ? ` ${m}m` : ''}` : `${m}m`
+        }
       },
-      // 目盛りの数を調整したい場合は tickAmount を追加
-      tickAmount: 5, 
-    },
-    legend: {
-      position: 'bottom',
+      tickAmount: 5
     },
     tooltip: {
-      theme: 'dark',
-      y: {
-        formatter: (value: number) => {
-          const h = Math.floor(value / 60);
-          const m = Math.round(value % 60);
-          return h > 0 ? `${h}時間 ${m}分` : `${m}分`;
-        }
-      }
+      shared: true,
+      intersect: false,
+      y: { formatter: (val) => `${Math.floor(val / 60)}時間 ${Math.round(val % 60)}分` }
     },
-  }
+    legend: { position: 'bottom', horizontalAlign: 'center' },
+    noData: { text: '今週のデータはありません', style: { color: '#999', fontSize: '14px' } }
+  }), [])
 
   return (
-    <Chart
-      options={options}
-      series={series}
-      type="bar"
-      height={260}
-    />
-  )
+  <div className={styles.container}>
+    <div className={styles.header}>
+      <button 
+        className={styles.navButton}
+        onClick={() => setWeekOffset(prev => prev - 1)}
+        aria-label="先週へ"
+      >
+        ←
+      </button>
+
+      <div className={styles.titleGroup}>
+        <h3 className={styles.title}>
+          {weekOffset === 0 ? '今週の学習' : weekOffset === -1 ? '先週の学習' : `${Math.abs(weekOffset)}週間前`}
+        </h3>
+        <p className={styles.dateRange}>{range.label}</p>
+      </div>
+
+      <button 
+        className={styles.navButton}
+        onClick={() => setWeekOffset(prev => prev + 1)} 
+        disabled={weekOffset >= 0}
+        aria-label="次週へ"
+      >
+        →
+      </button>
+    </div>
+    
+    <Chart options={options} series={series} type="bar" height={280} />
+  </div>
+)
 }
+
 export default BarChart
