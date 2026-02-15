@@ -164,15 +164,21 @@ function App() {
     return recordDate >= monday && recordDate <= sunday;
   });
 
-  const handleDateChange = (newDate: Date) => {
-  setCurrentDate(newDate); // 基準日を更新
-  
-  // RECORDセクションのタイトルまでスムーズにスクロール
-  const section = document.querySelector('.sectionTitle2');
-  if (section) {
-    section.scrollIntoView({ behavior: 'smooth' });
-  }
-};
+  // 月を切り替えるだけの関数（スクロールしない）
+    const handleDateChange = (newDate: Date) => {
+      setCurrentDate(newDate);
+    };
+
+    // 日付を選択した時の関数（月も変えるし、スクロールもする）
+    const handleDateSelect = (newDate: Date) => {
+      setCurrentDate(newDate); // 基準日を更新
+      
+      // RECORDセクションへスクロール
+      const section = document.querySelector('.sectionTitle2');
+      if (section) {
+        section.scrollIntoView({ behavior: 'smooth' });
+      }
+    };
 
   // --- 表示分岐 ---
 
@@ -207,7 +213,8 @@ function App() {
           <Monthly 
             records={records}
             viewDate={currentDate} // 状態を渡す
-            onDateChange={handleDateChange} // 変更関数を渡す
+            onDateChange={handleDateChange} // 矢印用（スクロールなし）
+            onDateSelect={handleDateSelect} // 日付クリック用（スクロールあり）
           />
         </div>
         <div className="card">

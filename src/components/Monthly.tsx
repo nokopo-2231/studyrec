@@ -5,6 +5,7 @@ type Props = {
   records: StudyRecord[]
   viewDate: Date 
   onDateChange: (d: Date) => void 
+  onDateSelect: (d: Date) => void
 }
 
 const normalizeDate = (dateStr: string) => {
@@ -14,7 +15,7 @@ const normalizeDate = (dateStr: string) => {
 
 const WEEKDAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
 
-const Monthly = ({ records, viewDate, onDateChange }: Props) => {
+const Monthly = ({ records, viewDate, onDateChange, onDateSelect }: Props) => {
   const year = viewDate.getFullYear()
   const month = viewDate.getMonth()
 
@@ -87,7 +88,7 @@ const Monthly = ({ records, viewDate, onDateChange }: Props) => {
                 key={day}
                 className={isStudied ? styles.activeDay : styles.day}
                 // ↓ ここをクリック可能にする
-                onClick={() => onDateChange(new Date(year, month, day))}
+                onClick={() => onDateSelect(new Date(year, month, day))}
                 style={{ cursor: 'pointer' }}
               >
                 {day}
