@@ -10,6 +10,7 @@ import { db, analytics, auth, googleProvider } from "./firebase";
 import { logEvent } from "firebase/analytics"; 
 import { collection, addDoc, getDocs, updateDoc, doc, deleteDoc, query, where } from "firebase/firestore"; 
 import { signInWithPopup, onAuthStateChanged, signOut, type User } from "firebase/auth"; 
+import AIComment from './components/AIComment'
 
 function App() {
   // 今日の日付を"YYYY-MM-DD"形式で取得（固定）
@@ -233,6 +234,9 @@ function App() {
           onUpdate={updateRecord} 
         /> 
       </main>
+
+      <AIComment records={records} />
+
     </div>
   );
 }
