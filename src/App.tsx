@@ -11,6 +11,7 @@ import { logEvent } from "firebase/analytics";
 import { collection, addDoc, getDocs, updateDoc, doc, deleteDoc, query, where } from "firebase/firestore"; 
 import { signInWithPopup, onAuthStateChanged, signOut, type User } from "firebase/auth"; 
 import AIComment from './components/AIComment'
+import { fetchAiComment } from './services/gemini';
 
 function App() {
   // 今日の日付を"YYYY-MM-DD"形式で取得（固定）
@@ -25,10 +26,17 @@ function App() {
   // 表示中の月を親で管理する
   const [currentDate, setCurrentDate] = useState(new Date())
 
+  // --- AI関連のState ---
+  const [aiMsg, setAiMsg] = useState("今日は何から始める？")
+  const [isAiOpen, setIsAiOpen] = useState(false)
+
   // 1. ログイン状態の監視
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
       setUser(currentUser);
+    if (currentUser) {
+        setAiMsg(`${currentUser.displayName || 'ユーザー'}さん、おかえりなさい！`)
+      }
     });
     return () => unsubscribe();
   }, []);
@@ -83,6 +91,7 @@ function App() {
   }
 
   try {
+    // Firebaseに保存
     const docRef = await addDoc(collection(db, "records"), {
       uid: user.uid,
       date,
@@ -98,6 +107,7 @@ function App() {
       })
     }
 
+    // ローカルのrecords更新
     const newRecord: StudyRecord = {
       id: docRef.id,
       date,
@@ -107,6 +117,14 @@ function App() {
 
     setRecords(prev => [...prev, newRecord])
     setSubject('')
+
+    //AIの呼び出し
+    // 保存した瞬間にAIにコメントをもらいに行く
+    const minutes = Math.floor(secondsFromTimer / 60);
+    const comment = await fetchAiComment(subject, minutes, records);
+    setAiMsg(comment); // AIの言葉を更新
+    setIsAiOpen(true); // 吹き出しを自動で開く
+
     alert("自分専用のクラウドに保存しました！")
   } catch (e) {
     console.error("保存失敗:", e)
@@ -235,7 +253,11 @@ function App() {
         /> 
       </main>
 
-      <AIComment records={records} />
+      <AIComment 
+        message={aiMsg} 
+        isOpen={isAiOpen} 
+        setIsOpen={setIsAiOpen} 
+      />
 
     </div>
   );

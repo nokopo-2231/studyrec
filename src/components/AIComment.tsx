@@ -1,28 +1,23 @@
-import { useState } from 'react'
 
 interface AICommentProps {
-  records: any[]; // 実際の型に合わせて調整してください
+  message: string;
+  isOpen: boolean;
+  setIsOpen: (open: boolean) => void;
 }
 
-const AIComment = ({ records }: AICommentProps) => {
-  const [isOpen, setIsOpen] = useState(false);
-
-  // 学習状況に応じたメッセージ生成ロジック（例）
-  const getMessage = () => {
-    if (records.length === 0) return "まずは今日の最初の1歩を記録してみよう！応援してるよ。";
-    if (records.length > 5) return "すごい！今週はかなり積み上げられてるね。その調子！";
-    return "お疲れ様！一歩ずつの積み重ねが、大きな成果になるよ。頑張って！";
-  };
-
+const AIComment = ({ message, isOpen, setIsOpen }: AICommentProps) => {
   return (
     <div className="ai-comment-section">
+      {/* クリックで開閉を切り替え */}
       <div className="ai-icon-wrapper" onClick={() => setIsOpen(!isOpen)}>
-        <img className="ai-icon" src="/robot.png" alt="AI Comment Icon" ></img>
+        <img className="ai-icon" src="/robot.png" alt="AI Comment Icon" />
       </div>
 
       {isOpen && (
         <div className="ai-popover">
-          <p>{getMessage()}</p>
+          {/* App.tsx でセットされた Gemini のメッセージを表示 */}
+          <p>{message}</p>
+          <div className="popover-arrow"></div>
         </div>
       )}
     </div>
