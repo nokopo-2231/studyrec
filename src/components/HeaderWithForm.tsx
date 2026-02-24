@@ -13,18 +13,17 @@ type Props = {
 }
 
 const HeaderWithForm = ({
-    date,
-    subject,
-    onSubjectChange,
-    onSubmit,
-    onLogout,
+  date,
+  subject,
+  onSubjectChange,
+  onSubmit,
+  onLogout,
 }: Props) => {
 
   const [open, setOpen] = useState(false)
+  // タイマーの状態管理
   const [seconds, setSeconds] = useState(0)
   const [isActive, setIsActive] = useState(false)
-  // 停止した時点までの経過秒数を保持する
-  const [accumulatedTime, setAccumulatedTime] = useState(0)
 
   // Wake Lockの状態を保持する変数
   const wakeLockRef = useRef<any>(null)
@@ -50,45 +49,73 @@ const HeaderWithForm = ({
     }
   };
 
-  // タイマーのカウントアップ & スリープ制御
+  // --- useEffect 1: 初回読み込み時の復元 ---
   useEffect(() => {
-    let interval: ReturnType<typeof setInterval> | null = null
+    const savedStartTime = localStorage.getItem("studyStartTime"); 
+    const savedAccumulated = localStorage.getItem("studyAccumulatedTime");
+
+    if (savedStartTime) {
+     // 1. 実行中だった場合：現在の時刻から開始時刻を引いて、経過秒数を即座に計算
+      const start = Number(savedStartTime);
+      const currentSeconds = Math.floor((Date.now() - start) / 1000);
+      setSeconds(currentSeconds);
+      setIsActive(true);
+    } else if (savedAccumulated) {
+      // 2. 停止中だがデータがある場合
+      setSeconds(Number(savedAccumulated));
+    }
+  }, []);
+
+  // --- useEffect 2: タイマーのメインロジック ---
+  useEffect(() => {
+    let interval: ReturnType<typeof setInterval> | null = null;
     
     if (isActive) {
-      // タイマー開始時にスリープ防止
       requestWakeLock();
       
-      // 時刻差分方式で計算（スリープ対策）
-      const startTime = Date.now() - accumulatedTime * 1000;
-      interval = setInterval(() => {
-        // 常に「開始時刻との差」を表示するので、スリープしてもズレない
-        setSeconds(Math.floor((Date.now() - startTime) / 1000));
-      }, 1000);
-      
-    } else {
-      // 停止時に合計時間を保存し、スリープ防止を解除
-      setAccumulatedTime(seconds);
-      releaseWakeLock();
-    }
-    
-    return () => {
-      if (interval) clearInterval(interval);
-      // コンポーネントが消えるときも解除
-      releaseWakeLock();
-    };
-  }, [isActive]);
+      let startTimeStr = localStorage.getItem("studyStartTime");
+      if (!startTimeStr) {
+        // 停止状態から新しく開始する場合のみ、新しく開始時刻を保存
+        const startTime = Date.now() - (seconds * 1000);
+        startTimeStr = startTime.toString();
+        localStorage.setItem("studyStartTime", startTimeStr);
+      }
 
-  //停止して保存する処理
-  const handleSave = () => {
-    // seconds (数値) をそのまま App.tsx の addRecord へ渡す
-    onSubmit(seconds) 
-    setIsActive(false)
-    setSeconds(0)
-    setAccumulatedTime(0) // リセット
-    setOpen(false)
-    releaseWakeLock(); // 保存時も確実に解除
+      const startTime = Number(startTimeStr);
+      
+      interval = setInterval(() => {
+        const nextSeconds = Math.floor((Date.now() - startTime) / 1000);
+        setSeconds(nextSeconds);
+      }, 1000);
+
+    } else {
+      // 停止した時
+      releaseWakeLock();
+    if (interval) clearInterval(interval);
+    
+    // 停止した瞬間の秒数を確定させて保存し、開始時刻を消す
+    if (seconds > 0) {
+      localStorage.setItem("studyAccumulatedTime", seconds.toString());
+    }
+    localStorage.removeItem("studyStartTime");
   }
 
+    return () => {
+      if (interval) clearInterval(interval);
+    };
+  }, [isActive]); // secondsを依存配列に入れるとループするのでisActiveだけでOK
+
+  // --- 保存処理 ---
+  const handleSave = () => {
+    onSubmit(seconds);
+    setIsActive(false);
+    setSeconds(0);
+    // すべてのタイマー用キャッシュを削除
+    localStorage.removeItem("studyStartTime");
+    localStorage.removeItem("studyAccumulatedTime");
+    setOpen(false);
+    releaseWakeLock();
+  }
   return (
     <div className={styles.container}>
       <div className={styles.inner}>

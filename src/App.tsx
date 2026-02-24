@@ -14,46 +14,43 @@ import AIComment from './components/AIComment'
 import { fetchAiComment } from './services/gemini';
 
 function App() {
-  // 今日の日付を"YYYY-MM-DD"形式で取得（固定）
-  const getToday = () =>
-  new Date().toISOString().slice(0, 10)
+  // --- 基本設定 ---
+  const getToday = () => new Date().toISOString().slice(0, 10)
   const [date] = useState(getToday())
 
-  const [subject, setSubject] = useState('')
-  // const [duration, setDuration] = useState('')
+  // --- 教科の状態管理 (localStorageから復元) ---
+  const [subject, setSubject] = useState(() => {
+    return localStorage.getItem("studySelectedSubject") || ''
+  })
+
+  const handleSubjectChange = (val: string) => {
+    setSubject(val);
+    localStorage.setItem("studySelectedSubject", val);
+  }
+
+  // --- 状態管理 ---
   const [records, setRecords] = useState<StudyRecord[]>([])
   const [user, setUser] = useState<User | null>(null);
-  // 表示中の月を親で管理する
   const [currentDate, setCurrentDate] = useState(new Date())
+  const [loading, setLoading] = useState(true);
 
-  // --- AI関連のState ---
+  // --- AI関連 ---
   const [aiMsg, setAiMsg] = useState("今日は何から始める？")
   const [isAiOpen, setIsAiOpen] = useState(false)
 
-  // 1. ログイン状態の監視
+  // --- 認証 (Firebase Auth) ---
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
       setUser(currentUser);
-    if (currentUser) {
+      if (currentUser) {
         setAiMsg(`${currentUser.displayName || 'ユーザー'}さん、おかえりなさい！`)
       }
+      setLoading(false);
     });
     return () => unsubscribe();
   }, []);
 
-  // 2. ログイン時のみデータを取得
-  useEffect(() => {
-    if (analytics) {
-      logEvent(analytics, 'page_view', { page_title: 'StudyAppMain' });
-    }
-
-    if (user) {
-      fetchRecords();
-    } else {
-      setRecords([]); 
-    }
-  }, [user]);
-
+  // --- ログイン・ログアウト ---
   const login = async () => {
     try {
       await signInWithPopup(auth, googleProvider);
@@ -64,8 +61,9 @@ function App() {
 
   const logout = () => signOut(auth);
 
-  // --- Firestore操作 ---
+  // --- Firestore操作 (CRUD) ---
 
+  // 1. 取得 (Read)
   const fetchRecords = async () => {
     if (!user) return;
     try {
@@ -81,58 +79,67 @@ function App() {
     }
   };
 
-  // 引数に timeFromTimer を追加し、タイマーからの文字列を受け取れるようにします
+  useEffect(() => {
+    if (user) {
+      fetchRecords();
+      if (analytics) logEvent(analytics, 'page_view', { page_title: 'StudyAppMain' });
+    } else {
+      setRecords([]); 
+    }
+  }, [user]);
+
+  // 2. 追加 (Create)
   const addRecord = async (secondsFromTimer: number) => {
-  const finalSeconds = secondsFromTimer
+    if (!user || !subject || secondsFromTimer === 0) {
+      alert("科目を選択してタイマーを計測してください")
+      return
+    }
 
-  if (!user || !subject || finalSeconds === 0) {
-    alert("科目を選択してタイマーを計測してください")
-    return
-  }
-
-  try {
-    // Firebaseに保存
-    const docRef = await addDoc(collection(db, "records"), {
-      uid: user.uid,
-      date,
-      subject,
-      duration: finalSeconds, // ← 秒で保存
-      createdAt: new Date(),
-    })
-
-    if (analytics) {
-      logEvent(analytics, 'add_study_record', {
+    try {
+      // Firebaseに保存
+      const docRef = await addDoc(collection(db, "records"), {
+        uid: user.uid,
+        date,
         subject,
-        seconds: finalSeconds,
+        duration: secondsFromTimer,
+        createdAt: new Date(),
       })
+
+      const newRecord: StudyRecord = {
+        id: docRef.id,
+        date,
+        subject,
+        duration: secondsFromTimer,
+      }
+
+      // ローカルStateの更新
+      const updatedRecords = [...records, newRecord];
+      setRecords(updatedRecords);
+
+      // 保存成功時に各キャッシュをクリア
+      setSubject('');
+      localStorage.removeItem("studySelectedSubject");
+      localStorage.removeItem("studyStartTime");
+      localStorage.removeItem("studyAccumulatedTime");
+
+      // AIの呼び出し
+      const minutes = Math.floor(secondsFromTimer / 60);
+      const comment = await fetchAiComment(subject, minutes, updatedRecords);
+      setAiMsg(comment);
+      setIsAiOpen(true);
+
+      if (analytics) {
+        logEvent(analytics, 'add_study_record', { subject, seconds: secondsFromTimer });
+      }
+
+      alert("自分専用のクラウドに保存しました！")
+    } catch (e) {
+      console.error("保存失敗:", e)
+      alert("保存に失敗しました。")
     }
-
-    // ローカルのrecords更新
-    const newRecord: StudyRecord = {
-      id: docRef.id,
-      date,
-      subject,
-      duration: finalSeconds,
-    }
-
-    setRecords(prev => [...prev, newRecord])
-    setSubject('')
-
-    //AIの呼び出し
-    // 保存した瞬間にAIにコメントをもらいに行く
-    const minutes = Math.floor(secondsFromTimer / 60);
-    const comment = await fetchAiComment(subject, minutes, records);
-    setAiMsg(comment); // AIの言葉を更新
-    setIsAiOpen(true); // 吹き出しを自動で開く
-
-    alert("自分専用のクラウドに保存しました！")
-  } catch (e) {
-    console.error("保存失敗:", e)
-    alert("保存に失敗しました。")
   }
-}
 
-//削除関数
+  // 3. 削除 (Delete)
   const deleteRecord = async (id: string) => {
     try {
       await deleteDoc(doc(db, "records", id));
@@ -142,14 +149,14 @@ function App() {
     }
   };
 
-  //更新関数
+  // 4. 更新 (Update)
   const updateRecord = async (updated: StudyRecord) => {
     try {
       const recordRef = doc(db, "records", updated.id);
       await updateDoc(recordRef, {
         date: updated.date,
         subject: updated.subject,
-        duration: updated.duration // 秒単位
+        duration: updated.duration
       });
       setRecords(prev => prev.map(r => r.id === updated.id ? updated : r));
     } catch (e) {
@@ -157,19 +164,16 @@ function App() {
     }
   };
 
-  // --- フィルタリングロジック ---
-  // RankingやMonthlyの統計用に「表示中の月」だけでフィルタリング
+  // --- 表示用フィルタリング ---
   const monthlyRecords = records.filter(r => {
     const d = new Date(r.date)
     return d.getFullYear() === currentDate.getFullYear() && 
            d.getMonth() === currentDate.getMonth()
   })
 
-  // StudyList（RECORDセクション）に表示する「今週分」のデータを抽出
   const weeklyRecords = records.filter((r) => {
     const baseDate = new Date(currentDate);
     const day = baseDate.getDay();
-    // 月曜日を週の始まりとする計算
     const diffToMon = day === 0 ? -6 : 1 - day; 
     const monday = new Date(baseDate);
     monday.setDate(baseDate.getDate() + diffToMon);
@@ -183,23 +187,16 @@ function App() {
     return recordDate >= monday && recordDate <= sunday;
   });
 
-  // 月を切り替えるだけの関数（スクロールしない）
-    const handleDateChange = (newDate: Date) => {
-      setCurrentDate(newDate);
-    };
+  const handleDateChange = (newDate: Date) => setCurrentDate(newDate);
 
-    // 日付を選択した時の関数（月も変えるし、スクロールもする）
-    const handleDateSelect = (newDate: Date) => {
-      setCurrentDate(newDate); // 基準日を更新
-      
-      // RECORDセクションへスクロール
-      const section = document.querySelector('.sectionTitle2');
-      if (section) {
-        section.scrollIntoView({ behavior: 'smooth' });
-      }
-    };
+  const handleDateSelect = (newDate: Date) => {
+    setCurrentDate(newDate);
+    const section = document.querySelector('.sectionTitle2');
+    if (section) section.scrollIntoView({ behavior: 'smooth' });
+  };
 
-  // --- 表示分岐 ---
+  // --- レンダリング ---
+  if (loading) return <div>Loading...</div>;
 
   if (!user) {
     return (
@@ -219,7 +216,7 @@ function App() {
         <HeaderWithForm 
             date={date}
             subject={subject}
-            onSubjectChange={setSubject}
+            onSubjectChange={handleSubjectChange}
             onSubmit={addRecord}
             onLogout={logout}
           />
@@ -227,27 +224,21 @@ function App() {
 
       <main>
         <h2 className="sectionTitle1">MONTHLY</h2>
-        {/* 月間カレンダーには全データを渡す */}
         <div className="card">
           <Monthly 
             records={records}
-            viewDate={currentDate} // 状態を渡す
-            onDateChange={handleDateChange} // 矢印用（スクロールなし）
-            onDateSelect={handleDateSelect} // 日付クリック用（スクロールあり）
+            viewDate={currentDate}
+            onDateChange={handleDateChange}
+            onDateSelect={handleDateSelect}
           />
         </div>
-        <div className="card">
-          <Ranking records={monthlyRecords} />
-        </div>
-        <div className="card">
-          <BarChart records={monthlyRecords} />
-        </div>
+        <div className="card"><Ranking records={monthlyRecords} /></div>
+        <div className="card"><BarChart records={monthlyRecords} /></div>
         
         <h2 className="sectionTitle2">RECORD (今週の記録)</h2>
-        {/* 下のリストには今週分だけを渡す */}
         <StudyList 
           records={weeklyRecords} 
-          targetDate={currentDate} // カレンダーで選択されている日を渡す
+          targetDate={currentDate}
           onDelete={deleteRecord} 
           onUpdate={updateRecord} 
         /> 
@@ -258,7 +249,6 @@ function App() {
         isOpen={isAiOpen} 
         setIsOpen={setIsAiOpen} 
       />
-
     </div>
   );
 }
